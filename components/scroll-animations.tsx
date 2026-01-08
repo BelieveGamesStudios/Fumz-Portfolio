@@ -25,8 +25,19 @@ export function ScrollAnimations() {
             entry.target.classList.add("slide-in-from-bottom-4")
           }
 
-          // Stop observing once animated
-          observer.unobserve(entry.target)
+          // If this is the skills section, toggle the fluorescent underline (on when intersecting).
+          if ((entry.target as HTMLElement).id === 'skills') {
+            ;(entry.target as HTMLElement).classList.toggle('fluoro-on', true)
+            // Don't unobserve skills — we want to toggle off when it leaves the viewport
+          } else {
+            // Stop observing once animated (other elements don't need to toggle)
+            observer.unobserve(entry.target)
+          }
+        } else {
+          // If element left viewport, and it's the skills section, toggle the fluorescent off
+          if ((entry.target as HTMLElement).id === 'skills') {
+            ;(entry.target as HTMLElement).classList.toggle('fluoro-on', false)
+          }
         }
       })
     }, observerOptions)

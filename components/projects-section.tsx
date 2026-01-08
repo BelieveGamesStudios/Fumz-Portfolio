@@ -2,8 +2,8 @@
 
 import type React from "react"
 
-import { useState } from "react"
-import { ArrowUpRight, Gamepad2, Smartphone, Cpu, LucideGlassesIcon } from "lucide-react"
+import { useState, useEffect } from "react"
+import { ArrowUpRight, Gamepad2, Smartphone, Cpu, LucideGlasses } from "lucide-react"
 import Link from "next/link"
 
 type ProjectCategory = "all" | "games" | "xr" | "mobile" | "desktop"
@@ -18,7 +18,8 @@ interface Project {
   link: string
 }
 
-const PROJECTS: Project[] = [
+// Fallback sample data if no projects are found in database
+const SAMPLE_PROJECTS: Project[] = [
   {
     id: "1",
     title: "VR Escape Room Experience",
@@ -96,16 +97,35 @@ const PROJECTS: Project[] = [
 const CATEGORIES: { label: string; value: ProjectCategory; icon: React.ReactNode }[] = [
   { label: "All", value: "all", icon: null },
   { label: "Games", value: "games", icon: <Gamepad2 className="w-4 h-4" /> },
-  { label: "XR Apps", value: "xrLucideGlassesIconlassesIconIconIconIconIconlassesIcon: <LucideGlassesIcon className="w-4 h-4" /> },
+  { label: "XR Apps", value: "xr", icon: <LucideGlasses className="w-4 h-4" /> },
   { label: "Mobile", value: "mobile", icon: <Smartphone className="w-4 h-4" /> },
   { label: "Desktop", value: "desktop", icon: <Cpu className="w-4 h-4" /> },
 ]
 
 export function ProjectsSection() {
+  const [projects, setProjects] = useState<Project[]>([])
   const [activeCategory, setActiveCategory] = useState<ProjectCategory>("all")
+  const [loading, setLoading] = useState(true)
 
-  const filteredProjects =
-    activeCategory === "all" ? PROJECTS : PROJECTS.filter((project) => project.category === activeCategory)
+  useEffect(() => {
+    async function fetchProjects() {
+      try {
+        const response = await fetch('/api/projects')
+        const data = await response.json()
+        
+        // If no projects from database, use sample data
+        setProjects(data.length > 0 ? data : SAMPLE_PROJECTS)
+      } catch (error) {
+        console.error('Error fetching projects:', error)
+        // Fallback to sample data on error
+        setProjects(SAMPLE_PROJECTS)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchProjects()
+  }, [])
 
   return (
     <section id="projects" className="relative w-full py-24 px-4 sm:px-6 lg:px-8 bg-background">
@@ -139,11 +159,24 @@ export function ProjectsSection() {
 
         {/* Projects Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredProjects.map((project, index) => (
+          {loading ? (
+            <div className="col-span-full text-center py-12">
+              <p className="text-muted-foreground">Loading projects...</p>
+            </div>
+          ) : (
+            (() => {
+              const filteredProjects = activeCategory === "all" 
+                ? projects 
+                : projects.filter((project) => project.category === activeCategory)
+              
+              return filteredProjects.length > 0 ? (
+                filteredProjects.map((project, index) => (
             <Link
               key={project.id}
               href={project.link}
-              className="group relative overflow-hidden rounded-2xl glass-sm hover:glass transition-all duration-300 animate-in fade-in slide-in-from-bottom-4 glow-effect-hover"
+              className="group relative overflow-hidden rounded-2xl glass-sm hover:glass transition-all duration-300 glow-effect-hover"
+              data-scroll-animate
+              data-animation="slide-up"
               style={{ animationDelay: `${index * 50}ms` }}
             >
               {/* Project image */}
@@ -179,14 +212,15 @@ export function ProjectsSection() {
 
               <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/10 to-accent/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none rounded-2xl" />
             </Link>
-          ))}
+                ))
+              ) : (
+                <div className="col-span-full text-center py-12">
+                  <p className="text-muted-foreground">No projects found in this category.</p>
+                </div>
+              )
+            })()
+          )}
         </div>
-
-        {filteredProjects.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">No projects found in this category.</p>
-          </div>
-        )}
       </div>
     </section>
   )

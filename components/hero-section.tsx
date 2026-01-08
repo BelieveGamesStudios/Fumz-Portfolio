@@ -93,19 +93,19 @@ export function HeroSection() {
       <canvas ref={canvasRef} className="absolute inset-0 opacity-30" aria-hidden="true" />
 
       <div className="absolute inset-0 bg-gradient-to-b from-background via-transparent to-background pointer-events-none" />
-      <div className="absolute top-20 left-1/4 w-96 h-96 bg-white/5 rounded-full blur-3xl pointer-events-none animate-pulse" />
-      <div className="absolute bottom-20 right-1/4 w-96 h-96 bg-white/5 rounded-full blur-3xl pointer-events-none animate-pulse" />
+      <div className="absolute top-20 left-1/4 w-96 h-96 bg-white/5 rounded-full blur-3xl pointer-events-none" data-parallax="0.08" />
+      <div className="absolute bottom-20 right-1/4 w-96 h-96 bg-white/5 rounded-full blur-3xl pointer-events-none" data-parallax="-0.06" />
 
       {/* Content */}
       <div className="relative z-10 max-w-4xl mx-auto px-4 text-center">
-        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+        <div className="space-y-6" data-scroll-animate data-animation="slide-up">
           <div className="inline-block">
             <span className="px-4 py-2 rounded-full glass text-foreground text-sm font-medium">
               Welcome to My Portfolio
             </span>
           </div>
 
-          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold leading-tight text-balance chromatic-filter">
+          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold leading-tight text-balance">
             Building{" "}
             <span className="bg-gradient-to-r from-foreground via-muted to-foreground bg-clip-text text-transparent">
               Immersive Digital Experiences
@@ -117,7 +117,7 @@ export function HeroSection() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
-            <Button size="lg" className="bg-foreground text-background hover:bg-white group" asChild>
+            <Button size="lg" className="glass text-foreground hover:glass-sm group" asChild>
               <a href="#projects">
                 View Projects
                 <span className="group-hover:translate-x-1 transition-transform ml-2">→</span>

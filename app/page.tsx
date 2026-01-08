@@ -4,6 +4,7 @@ import { ProjectsSection } from "@/components/projects-section"
 import { AboutSection } from "@/components/about-section"
 import { ContactSection } from "@/components/contact-section"
 import { ScrollAnimations } from "@/components/scroll-animations"
+import { CertificationsSection } from "@/components/certifications-section"
 
 export default function Home() {
   return (
@@ -13,6 +14,7 @@ export default function Home() {
       <HeroSection />
       <ProjectsSection />
       <AboutSection />
+      <CertificationsSection />
       <ContactSection />
     </main>
   )

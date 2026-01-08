@@ -3,6 +3,8 @@
 import type React from "react"
 import { useState } from "react"
 import { Mail, Linkedin, Github, Twitter, Send } from "lucide-react"
+import { submitContactForm } from "@/app/actions/admin"
+import { useToast } from "@/components/ui/use-toast"
 
 interface FormData {
   name: string
@@ -20,6 +22,7 @@ export function ContactSection() {
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle")
+  const { toast } = useToast()
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -32,13 +35,27 @@ export function ContactSection() {
     setSubmitStatus("idle")
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-      console.log("Form submitted:", formData)
+      await submitContactForm({
+        name: formData.name,
+        email: formData.email,
+        subject: formData.subject,
+        message: formData.message,
+      })
       setSubmitStatus("success")
+      toast({
+        title: "Success",
+        description: "Your message has been sent successfully!",
+      })
       setFormData({ name: "", email: "", subject: "", message: "" })
       setTimeout(() => setSubmitStatus("idle"), 3000)
     } catch (error) {
+      console.error("Form submission error:", error)
       setSubmitStatus("error")
+      toast({
+        title: "Error",
+        description: "Failed to send your message. Please try again.",
+        variant: "destructive",
+      })
       setTimeout(() => setSubmitStatus("idle"), 3000)
     } finally {
       setIsSubmitting(false)
@@ -58,7 +75,7 @@ export function ContactSection() {
       <div className="absolute bottom-20 left-1/4 w-96 h-96 bg-accent/5 rounded-full blur-3xl pointer-events-none" />
 
       <div className="relative z-10 max-w-6xl mx-auto">
-        <div className="space-y-4 mb-16 text-center">
+        <div className="space-y-4 mb-16 text-center" data-scroll-animate data-animation="slide-up">
           <h2 className="text-4xl sm:text-5xl font-bold">Let's Create Something Amazing</h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Whether you have a game idea, need VR/AR expertise, or want to collaborate on an immersive project, I'd love
@@ -67,7 +84,7 @@ export function ContactSection() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          <div className="space-y-8">
+          <div className="space-y-8" data-scroll-animate data-animation="slide-left">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
                 <label htmlFor="name" className="block text-sm font-medium text-foreground">
@@ -159,7 +176,7 @@ export function ContactSection() {
                   <a
                     key={link.label}
                     href={link.href}
-                    className="flex items-center gap-3 p-4 glass rounded-lg hover:bg-white/10 transition-all"
+                    className="flex items-center gap-3 p-4 glass rounded-lg hover:glass-sm transition-all"
                   >
                     <Icon className="w-5 h-5 text-primary" />
                     <span className="font-medium">{link.label}</span>
