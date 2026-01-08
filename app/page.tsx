@@ -7,6 +7,7 @@ import { ScrollAnimations } from "@/components/scroll-animations"
 import { CertificationsSection } from "@/components/certifications-section"
 
 export default function Home() {
+
   return (
     <main className="w-full">
       <ScrollAnimations />

@@ -1,8 +1,11 @@
 "use client"
 
 import { useEffect } from "react"
+import { useRevealEffect } from "@/hooks/use-reveal-effect"
 
 export function ScrollAnimations() {
+  useRevealEffect()
+
   useEffect(() => {
     // Handle scroll-triggered animations
     const observerOptions = {
@@ -27,7 +30,7 @@ export function ScrollAnimations() {
 
           // If this is the skills section, toggle the fluorescent underline (on when intersecting).
           if ((entry.target as HTMLElement).id === 'skills') {
-            ;(entry.target as HTMLElement).classList.toggle('fluoro-on', true)
+            ; (entry.target as HTMLElement).classList.toggle('fluoro-on', true)
             // Don't unobserve skills — we want to toggle off when it leaves the viewport
           } else {
             // Stop observing once animated (other elements don't need to toggle)
@@ -36,7 +39,7 @@ export function ScrollAnimations() {
         } else {
           // If element left viewport, and it's the skills section, toggle the fluorescent off
           if ((entry.target as HTMLElement).id === 'skills') {
-            ;(entry.target as HTMLElement).classList.toggle('fluoro-on', false)
+            ; (entry.target as HTMLElement).classList.toggle('fluoro-on', false)
           }
         }
       })
@@ -55,7 +58,7 @@ export function ScrollAnimations() {
       parallaxElements.forEach((element) => {
         const speed = Number((element as HTMLElement).dataset.parallax) || 0.5
         const yPos = scrollY * speed
-        ;(element as HTMLElement).style.transform = `translateY(${yPos}px)`
+          ; (element as HTMLElement).style.transform = `translateY(${yPos}px)`
       })
     }
 

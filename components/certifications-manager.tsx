@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { getCertifications, addCertification, deleteCertification } from '@/app/actions/admin'
-import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
@@ -25,7 +24,7 @@ export function CertificationsManager() {
   const [isOpen, setIsOpen] = useState(false)
   const { toast } = useToast()
 
-  const [form, setForm] = useState({ title: '', issuer: '', issued_date: '', file: null as File | null })
+  const [form, setForm] = useState({ title: '', issuer: '', issued_date: '', credential_url: '' })
 
   useEffect(() => {
     loadCerts()
@@ -43,7 +42,7 @@ export function CertificationsManager() {
     }
   }
 
-  async function handleUploadAndAdd() {
+  async function handleAdd() {
     if (!form.title.trim() || !form.issuer.trim()) {
       toast({ title: 'Error', description: 'Title and Issuer are required', variant: 'destructive' })
       return
@@ -51,42 +50,27 @@ export function CertificationsManager() {
 
     try {
       setLoading(true)
-      let publicUrl: string | undefined
+      console.log('Adding certification:', form)
 
-      if (form.file) {
-        const supabase = createClient()
-        const filePath = `certifications/${Date.now()}_${form.file.name}`
-        const { error: uploadError } = await supabase.storage.from('certifications').upload(filePath, form.file, { upsert: true })
-        if (uploadError) {
-          console.error('Storage upload error:', uploadError)
-          throw new Error(`Storage upload failed: ${uploadError.message}`)
-        }
-
-        const { data: urlData } = supabase.storage.from('certifications').getPublicUrl(filePath)
-        publicUrl = urlData.publicUrl
-      }
-
-      console.log('Adding certification:', { title: form.title, issuer: form.issuer, issued_date: form.issued_date, credential_url: publicUrl })
-      
       await addCertification({
         title: form.title,
         issuer: form.issuer,
         issued_date: form.issued_date || undefined,
-        credential_url: publicUrl,
+        credential_url: form.credential_url || undefined,
       })
 
       console.log('Certification added successfully')
       toast({ title: 'Success', description: 'Certification added successfully!' })
-      setForm({ title: '', issuer: '', issued_date: '', file: null })
+      setForm({ title: '', issuer: '', issued_date: '', credential_url: '' })
       setIsOpen(false)
       await loadCerts()
     } catch (error: any) {
-      console.error('Full error in handleUploadAndAdd:', error)
+      console.error('Full error in handleAdd:', error)
       const errorMessage = error.message || error.toString() || 'Failed to add certification'
-      toast({ 
-        title: 'Error', 
+      toast({
+        title: 'Error',
         description: errorMessage,
-        variant: 'destructive' 
+        variant: 'destructive'
       })
     } finally {
       setLoading(false)
@@ -138,14 +122,18 @@ export function CertificationsManager() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="cert-file">Certificate Image</Label>
-              <input id="cert-file" type="file" accept="image/*" onChange={(e) => setForm({ ...form, file: e.target.files?.[0] ?? null })} />
-              <p className="text-sm text-muted-foreground">Images are uploaded to the Supabase storage bucket <code>certifications</code>. Create that bucket or configure it for public access if you want images to be visible to visitors.</p>
+              <Label htmlFor="cert-url">Certificate Image URL</Label>
+              <Input
+                id="cert-url"
+                value={form.credential_url}
+                onChange={(e) => setForm({ ...form, credential_url: e.target.value })}
+                placeholder="https://example.com/certificate.jpg"
+              />
             </div>
 
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>
-              <Button onClick={handleUploadAndAdd}>Save</Button>
+              <Button onClick={handleAdd}>Save</Button>
             </div>
           </div>
         </DialogContent>
