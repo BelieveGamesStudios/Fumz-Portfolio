@@ -3,8 +3,10 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { Menu, X } from "lucide-react"
+import { useMousePosition } from "@/hooks/use-mouse-position" // Import hook
 
 export function Navbar() {
+  useMousePosition() // Initialize tracking
   const [isOpen, setIsOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
 

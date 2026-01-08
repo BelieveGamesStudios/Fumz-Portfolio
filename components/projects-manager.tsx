@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Label } from '@/components/ui/label'
 import { useToast } from '@/components/ui/use-toast'
 import { RichTextEditor } from './rich-text-editor'
-import { Trash2, Edit2, Plus, X, Film } from 'lucide-react'
+import { Trash2, Edit2, Plus, X, Film, Download } from 'lucide-react'
 
 interface Project {
   id: string
@@ -19,6 +19,7 @@ interface Project {
   image_url: string
   platform?: string
   video_url?: string
+  download_url?: string
   screenshots?: Array<{ url: string; caption?: string }>
 }
 
@@ -37,6 +38,7 @@ export function ProjectsManager() {
     platforms: '',
     link: '',
     video_url: '',
+    download_url: '',
     screenshots: [] as Array<{ url: string; caption?: string }>,
   })
 
@@ -72,12 +74,12 @@ export function ProjectsManager() {
       })
       return
     }
-    
+
     const newScreenshot = {
       url: screenshotInput,
       caption: screenshotCaption || undefined,
     }
-    
+
     setFormData({
       ...formData,
       screenshots: [...formData.screenshots, newScreenshot],
@@ -95,6 +97,7 @@ export function ProjectsManager() {
 
   async function handleSubmit() {
     if (!formData.title || !formData.description) {
+      console.log('Validation failed:', { title: !!formData.title, description: !!formData.description })
       toast({
         title: 'Error',
         description: 'Please fill in all required fields',
@@ -110,6 +113,7 @@ export function ProjectsManager() {
         .filter((p) => p)
 
       if (editingId) {
+        console.log('Submitting update for:', editingId)
         await updateProject(editingId, {
           ...formData,
           platforms: platformArray,
@@ -132,11 +136,13 @@ export function ProjectsManager() {
         platforms: '',
         link: '',
         video_url: '',
+        download_url: '',
         screenshots: [],
       })
       setEditingId(null)
       await loadProjects()
     } catch (error) {
+      console.error('Project submission error:', error)
       toast({
         title: 'Error',
         description: 'Failed to save project',
@@ -170,6 +176,7 @@ export function ProjectsManager() {
       platforms: project.platform || '',
       link: '',
       video_url: project.video_url || '',
+      download_url: project.download_url || '',
       screenshots: project.screenshots || [],
     })
     setEditingId(project.id)
@@ -185,6 +192,7 @@ export function ProjectsManager() {
       platforms: '',
       link: '',
       video_url: '',
+      download_url: '',
       screenshots: [],
     })
     setEditingId(null)
@@ -269,21 +277,32 @@ export function ProjectsManager() {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="video_url">Video URL (YouTube/Vimeo)</Label>
-              <Input
-                id="video_url"
-                value={formData.video_url}
-                onChange={(e) => setFormData({ ...formData, video_url: e.target.value })}
-                placeholder="https://youtube.com/watch?v=... or https://vimeo.com/..."
-              />
-              <p className="text-xs text-muted-foreground">Paste the full video URL</p>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="video_url">Video URL (YouTube/Vimeo)</Label>
+                <Input
+                  id="video_url"
+                  value={formData.video_url}
+                  onChange={(e) => setFormData({ ...formData, video_url: e.target.value })}
+                  placeholder="https://youtube.com/watch?v=..."
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="download_url">Download Link</Label>
+                <Input
+                  id="download_url"
+                  value={formData.download_url}
+                  onChange={(e) => setFormData({ ...formData, download_url: e.target.value })}
+                  placeholder="https://example.com/game.zip"
+                />
+              </div>
             </div>
 
             {/* Screenshots Section */}
             <div className="space-y-4 border rounded-lg p-4 bg-secondary/10">
               <h4 className="font-semibold">Project Screenshots</h4>
-              
+
               <div className="space-y-3">
                 <div className="space-y-2">
                   <Label htmlFor="screenshot-url">Screenshot URL</Label>
@@ -368,6 +387,12 @@ export function ProjectsManager() {
                     <span className="text-xs bg-primary/20 text-primary px-2 py-1 rounded flex items-center gap-1">
                       <Film className="w-3 h-3" />
                       Video
+                    </span>
+                  )}
+                  {project.download_url && (
+                    <span className="text-xs bg-green-500/20 text-green-500 px-2 py-1 rounded flex items-center gap-1">
+                      <Download className="w-3 h-3" />
+                      Link
                     </span>
                   )}
                   {project.screenshots && project.screenshots.length > 0 && (

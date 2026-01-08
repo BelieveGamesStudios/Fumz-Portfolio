@@ -39,6 +39,7 @@ export async function addProject(projectData: {
   platforms: string[]
   link: string
   video_url?: string
+  download_url?: string
   screenshots?: Array<{ url: string; caption?: string }>
 }) {
   const supabase = await createClient()
@@ -56,6 +57,7 @@ export async function addProject(projectData: {
         platform: projectData.platforms.join(','),
         featured: false,
         video_url: projectData.video_url || null,
+        download_url: projectData.download_url || null,
         screenshots: projectData.screenshots || [],
       },
     ])
@@ -75,11 +77,15 @@ export async function updateProject(
     platforms: string[]
     link: string
     video_url?: string
+    download_url?: string
     screenshots?: Array<{ url: string; caption?: string }>
   }
 ) {
   const supabase = await createClient()
   const user = await getAdminUser()
+
+  console.log('Updating project:', projectId)
+  console.log('Update data:', projectData)
 
   const { data, error } = await supabase
     .from('projects')
@@ -90,6 +96,7 @@ export async function updateProject(
       image_url: projectData.image,
       platform: projectData.platforms.join(','),
       video_url: projectData.video_url || null,
+      download_url: projectData.download_url || null,
       screenshots: projectData.screenshots || [],
       updated_at: new Date().toISOString(),
     })
@@ -295,12 +302,7 @@ export async function addCertification(cert: { title: string; issuer: string; is
     console.log('Adding certification for user:', user.id)
     console.log('Certification data:', cert)
 
-    // Use a service-role client for the insert to avoid RLS issues while
-    // still verifying the request via getAdminUser() above.
-    const { createServiceRoleClient } = await import('@/lib/supabase/server')
-    const service = createServiceRoleClient()
-
-    const { data, error } = await service
+    const { data, error } = await supabase
       .from('certifications')
       .insert([
         {
@@ -318,19 +320,19 @@ export async function addCertification(cert: { title: string; issuer: string; is
       console.error('Certification insert error - Details:', error.details)
       console.error('Certification insert error - Hint:', error.hint)
       console.error('Certification insert error - Code:', error.code)
-      
+
       if (error.message?.includes('row-level security')) {
         throw new Error('RLS policy prevents insert. The certifications table may not exist or RLS policies are not configured. Run the SQL setup script from SETUP_MISSING_TABLES.md')
       }
-      
+
       if (error.code === 'PGRST116') {
         throw new Error('The certifications table does not exist. Please run the SQL setup script from SETUP_MISSING_TABLES.md')
       }
-      
+
       throw new Error(`Failed to add certification: ${error.message}`)
     }
-    
-    console.log('Certification added successfully (service client):', data)
+
+    console.log('Certification added successfully:', data)
     return data[0]
   } catch (err: any) {
     console.error('Error in addCertification:', err)

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import { Slider } from "@/components/ui/slider"
+import { SkillSlider } from "@/components/skill-slider"
 
 interface Skill {
   id: string
@@ -198,7 +199,7 @@ export function AboutSection() {
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {/* Left content */}
-              <div className="space-y-6" data-scroll-animate data-animation="slide-left">
+            <div className="space-y-6" data-scroll-animate data-animation="slide-left">
               <div className="space-y-2">
                 <h2 className="text-4xl sm:text-5xl font-bold">{aboutContent?.title || 'About Me'}</h2>
                 <div className="w-20 h-1 bg-gradient-to-r from-primary to-accent rounded-full" />
@@ -286,7 +287,7 @@ export function AboutSection() {
             {skillsData.map((category) => (
               <div
                 key={category.name}
-                className="p-6 glass rounded-2xl transition-all duration-300"
+                className="p-6 glass rounded-2xl transition-all duration-300 reveal-card reveal-border"
                 data-scroll-animate
                 data-animation="slide-up"
               >
@@ -304,13 +305,10 @@ export function AboutSection() {
 
                       {/* Skill Slider (read-only for visitors) */}
                       <div className="mt-2">
-                        <Slider
-                          defaultValue={[skill.level]}
-                          max={100}
-                          step={1}
-                          disabled
+                        <SkillSlider
+                          value={skill.level}
                           className="w-full"
-                          aria-label={`${skill.skill_name} proficiency`}
+                          ariaLabel={`${skill.skill_name} proficiency`}
                         />
                       </div>
                     </div>
@@ -321,7 +319,7 @@ export function AboutSection() {
           </div>
 
           {/* Additional info */}
-          <div className="mt-16 p-8 glass rounded-2xl glow-effect">
+          <div className="mt-16 p-8 glass rounded-2xl glow-effect reveal-card reveal-border">
             <h3 className="text-xl font-bold mb-4">Additional Expertise</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <div>

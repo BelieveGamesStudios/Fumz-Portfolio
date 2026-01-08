@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Download } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 interface Project {
@@ -14,6 +14,7 @@ interface Project {
   image: string
   platforms: string[]
   featured?: boolean
+  download_url?: string
   created_at?: string
 }
 
@@ -30,7 +31,7 @@ export default function ProjectPage() {
         setLoading(true)
         const response = await fetch('/api/projects')
         const projects: Project[] = await response.json()
-        
+
         const found = projects.find(p => p.id === projectId)
         if (found) {
           setProject(found)
@@ -84,7 +85,7 @@ export default function ProjectPage() {
         {/* Project header */}
         <div className="space-y-6 mb-12">
           <h1 className="text-4xl sm:text-5xl font-bold">{project.title}</h1>
-          
+
           {/* Project image */}
           <div className="relative h-96 rounded-2xl overflow-hidden bg-gradient-to-br from-primary/10 to-accent/10">
             <img
@@ -100,7 +101,7 @@ export default function ProjectPage() {
               <h3 className="text-sm font-semibold text-muted-foreground mb-2">Category</h3>
               <p className="text-lg capitalize">{project.category}</p>
             </div>
-            
+
             <div className="glass rounded-xl p-6">
               <h3 className="text-sm font-semibold text-muted-foreground mb-2">Platforms</h3>
               <div className="flex flex-wrap gap-2">
@@ -114,6 +115,17 @@ export default function ProjectPage() {
                   <span className="text-muted-foreground">Not specified</span>
                 )}
               </div>
+
+              {project.download_url && (
+                <div className="mt-6 pt-6 border-t border-border/50">
+                  <a href={project.download_url} target="_blank" rel="noopener noreferrer">
+                    <Button className="w-full gap-2 group">
+                      <Download className="w-4 h-4 group-hover:translate-y-1 transition-transform" />
+                      Download App
+                    </Button>
+                  </a>
+                </div>
+              )}
             </div>
           </div>
         </div>

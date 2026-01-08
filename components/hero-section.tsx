@@ -107,7 +107,7 @@ export function HeroSection() {
 
           <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold leading-tight text-balance">
             Building{" "}
-            <span className="bg-gradient-to-r from-foreground via-muted to-foreground bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-foreground via-primary to-accent bg-clip-text text-transparent animate-gradient-text">
               Immersive Digital Experiences
             </span>
           </h1>
