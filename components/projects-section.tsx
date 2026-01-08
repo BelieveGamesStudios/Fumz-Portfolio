@@ -5,6 +5,7 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import { ArrowUpRight, Gamepad2, Smartphone, Cpu, LucideGlasses } from "lucide-react"
 import Link from "next/link"
+import { stripHtml } from "@/lib/utils"
 
 type ProjectCategory = "all" | "games" | "xr" | "mobile" | "desktop"
 
@@ -112,7 +113,7 @@ export function ProjectsSection() {
       try {
         const response = await fetch('/api/projects')
         const data = await response.json()
-        
+
         // If no projects from database, use sample data
         setProjects(data.length > 0 ? data : SAMPLE_PROJECTS)
       } catch (error) {
@@ -144,11 +145,10 @@ export function ProjectsSection() {
             <button
               key={category.value}
               onClick={() => setActiveCategory(category.value)}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 flex items-center gap-2 ${
-                activeCategory === category.value
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 flex items-center gap-2 ${activeCategory === category.value
                   ? "bg-primary text-primary-foreground shadow-lg shadow-primary/30 glow-effect"
                   : "glass text-muted-foreground hover:bg-secondary/50 border-border/50"
-              }`}
+                }`}
               aria-pressed={activeCategory === category.value}
             >
               {category.icon}
@@ -165,53 +165,53 @@ export function ProjectsSection() {
             </div>
           ) : (
             (() => {
-              const filteredProjects = activeCategory === "all" 
-                ? projects 
+              const filteredProjects = activeCategory === "all"
+                ? projects
                 : projects.filter((project) => project.category === activeCategory)
-              
+
               return filteredProjects.length > 0 ? (
                 filteredProjects.map((project, index) => (
-            <Link
-              key={project.id}
-              href={project.link}
-              className="group relative overflow-hidden rounded-2xl glass-sm hover:glass transition-all duration-300 glow-effect-hover"
-              data-scroll-animate
-              data-animation="slide-up"
-              style={{ animationDelay: `${index * 50}ms` }}
-            >
-              {/* Project image */}
-              <div className="relative h-64 overflow-hidden bg-gradient-to-br from-primary/10 to-accent/10">
-                <img
-                  src={project.image || "/placeholder.svg"}
-                  alt={project.title}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              </div>
+                  <Link
+                    key={project.id}
+                    href={project.link}
+                    className="group relative overflow-hidden rounded-2xl glass-sm hover:glass transition-all duration-300 glow-effect-hover"
+                    data-scroll-animate
+                    data-animation="slide-up"
+                    style={{ animationDelay: `${index * 50}ms` }}
+                  >
+                    {/* Project image */}
+                    <div className="relative h-64 overflow-hidden bg-gradient-to-br from-primary/10 to-accent/10">
+                      <img
+                        src={project.image || "/placeholder.svg"}
+                        alt={project.title}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    </div>
 
-              {/* Content */}
-              <div className="p-6 space-y-4">
-                <h3 className="text-xl font-bold group-hover:text-primary transition-colors">{project.title}</h3>
-                <p className="text-sm text-muted-foreground line-clamp-2">{project.description}</p>
+                    {/* Content */}
+                    <div className="p-6 space-y-4">
+                      <h3 className="text-xl font-bold group-hover:text-primary transition-colors">{project.title}</h3>
+                      <p className="text-sm text-muted-foreground line-clamp-2">{stripHtml(project.description)}</p>
 
-                {/* Platform tags */}
-                <div className="flex flex-wrap gap-2">
-                  {project.platforms.map((platform) => (
-                    <span key={platform} className="px-2 py-1 glass-sm text-primary text-xs rounded-md">
-                      {platform}
-                    </span>
-                  ))}
-                </div>
+                      {/* Platform tags */}
+                      <div className="flex flex-wrap gap-2">
+                        {project.platforms.map((platform) => (
+                          <span key={platform} className="px-2 py-1 glass-sm text-primary text-xs rounded-md">
+                            {platform}
+                          </span>
+                        ))}
+                      </div>
 
-                {/* View project link */}
-                <div className="flex items-center gap-2 text-primary text-sm font-medium group-hover:gap-3 transition-all duration-300 pt-2">
-                  View Project
-                  <ArrowUpRight className="w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-                </div>
-              </div>
+                      {/* View project link */}
+                      <div className="flex items-center gap-2 text-primary text-sm font-medium group-hover:gap-3 transition-all duration-300 pt-2">
+                        View Project
+                        <ArrowUpRight className="w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                      </div>
+                    </div>
 
-              <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/10 to-accent/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none rounded-2xl" />
-            </Link>
+                    <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/10 to-accent/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none rounded-2xl" />
+                  </Link>
                 ))
               ) : (
                 <div className="col-span-full text-center py-12">

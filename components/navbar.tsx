@@ -26,15 +26,14 @@ export function Navbar() {
 
   return (
     <nav
-      className={`fixed top-0 w-full z-50 transition-all duration-300 ${
-        isScrolled ? "glass shadow-lg shadow-primary/5" : "bg-background/50 backdrop-blur-md border-b border-border/50"
-      }`}
+      className={`fixed top-0 w-full z-50 transition-all duration-300 ${isScrolled ? "glass shadow-lg shadow-primary/5" : "bg-background/50 backdrop-blur-md border-b border-border/50"
+        }`}
     >
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link href="#" className="flex items-center gap-2 group">
-            <span className="text-lg font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+            <span className="text-lg font-bold">
               FUMZ
             </span>
           </Link>
