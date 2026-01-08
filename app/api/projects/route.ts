@@ -34,6 +34,9 @@ export async function GET() {
     platforms: project.platform ? project.platform.split(',').map((p: string) => p.trim()) : [],
     link: `/projects/${project.id}`,
     featured: project.featured,
+    video_url: project.video_url || null,
+    download_url: project.download_url || null,
+    screenshots: project.screenshots || [],
     created_at: project.created_at,
     updated_at: project.updated_at,
   }))
