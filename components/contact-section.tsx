@@ -63,10 +63,9 @@ export function ContactSection() {
   }
 
   const socialLinks = [
-    { icon: Mail, label: "Email", href: "mailto:hello@xrdev.com" },
-    { icon: Linkedin, label: "LinkedIn", href: "#" },
-    { icon: Github, label: "GitHub", href: "#" },
-    { icon: Twitter, label: "Twitter", href: "#" },
+    { icon: Mail, label: "Email", href: "mailto:afolabifunmilade229@gmail.com" },
+    { icon: Linkedin, label: "LinkedIn", href: "https://www.linkedin.com/in/believe-studios?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=ios_app" },
+    { icon: Github, label: "GitHub", href: "https://github.com/believegamesstudios" },
   ]
 
   return (

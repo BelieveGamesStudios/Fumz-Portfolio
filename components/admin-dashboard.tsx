@@ -10,6 +10,7 @@ import { AboutEditor } from './about-editor'
 import { ContactSubmissions } from './contact-submissions'
 import { SkillsEditor } from './skills-editor'
 import { CertificationsManager } from './certifications-manager'
+import { ExperiencesManager } from './experiences-manager'
 
 export function AdminDashboard() {
   return (
@@ -31,8 +32,9 @@ export function AdminDashboard() {
         </div>
 
         <Tabs defaultValue="projects" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6 h-auto">
             <TabsTrigger value="projects">Projects</TabsTrigger>
+            <TabsTrigger value="experiences">XP</TabsTrigger>
             <TabsTrigger value="skills">Skills</TabsTrigger>
             <TabsTrigger value="certs">Certifications</TabsTrigger>
             <TabsTrigger value="about">About Section</TabsTrigger>
@@ -41,6 +43,10 @@ export function AdminDashboard() {
 
           <TabsContent value="projects" className="space-y-4">
             <ProjectsManager />
+          </TabsContent>
+
+          <TabsContent value="experiences" className="space-y-4">
+            <ExperiencesManager />
           </TabsContent>
 
           <TabsContent value="skills" className="space-y-4">

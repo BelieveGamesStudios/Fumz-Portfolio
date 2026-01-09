@@ -423,3 +423,106 @@ export async function deleteSkill(skillName: string) {
 
   if (error) throw error
 }
+
+// Experience actions
+export async function getExperiences() {
+  const supabase = await createClient()
+  // Public read access is allowed, but for admin we might want to ensure fetching
+  // However, since we made it public, no special auth needed for reading, but for editing we use admin user
+
+  const { data, error } = await supabase
+    .from('experiences')
+    .select('*')
+    .order('start_date', { ascending: false })
+
+  if (error && error.code !== 'PGRST116') { // Ignore "no rows" type errors if consistent
+    // For new table, it might not exist yet if SQL script not run
+    console.error('Error fetching experiences:', error)
+    return []
+  }
+  return data || []
+}
+
+export async function addExperience(exp: {
+  company: string
+  role: string
+  location?: string
+  start_date: string
+  end_date?: string | null
+  current: boolean
+  description?: string
+  company_logo?: string
+}) {
+  const supabase = await createClient()
+  const user = await getAdminUser()
+
+  const { data, error } = await supabase
+    .from('experiences')
+    .insert([
+      {
+        user_id: user.id,
+        company: exp.company,
+        role: exp.role,
+        location: exp.location,
+        start_date: exp.start_date,
+        end_date: exp.end_date || null,
+        current: exp.current,
+        description: exp.description,
+        company_logo: exp.company_logo,
+      },
+    ])
+    .select()
+
+  if (error) throw error
+  return data[0]
+}
+
+export async function updateExperience(
+  id: string,
+  exp: {
+    company: string
+    role: string
+    location?: string
+    start_date: string
+    end_date?: string | null
+    current: boolean
+    description?: string
+    company_logo?: string
+  }
+) {
+  const supabase = await createClient()
+  const user = await getAdminUser()
+
+  const { data, error } = await supabase
+    .from('experiences')
+    .update({
+      company: exp.company,
+      role: exp.role,
+      location: exp.location,
+      start_date: exp.start_date,
+      end_date: exp.end_date || null,
+      current: exp.current,
+      description: exp.description,
+      company_logo: exp.company_logo,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+    .eq('user_id', user.id)
+    .select()
+
+  if (error) throw error
+  return data[0]
+}
+
+export async function deleteExperience(id: string) {
+  const supabase = await createClient()
+  const user = await getAdminUser()
+
+  const { error } = await supabase
+    .from('experiences')
+    .delete()
+    .eq('id', id)
+    .eq('user_id', user.id)
+
+  if (error) throw error
+}
