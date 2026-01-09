@@ -3,20 +3,10 @@ import { createClient } from '@/lib/supabase/server'
 export async function GET() {
   const supabase = await createClient()
 
-  // Get authenticated user to retrieve their projects
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    // Return empty array for unauthenticated users
-    return Response.json([])
-  }
-
+  // Fetch all projects (removed user filter for public access)
   const { data, error } = await supabase
     .from('projects')
     .select('*')
-    .eq('user_id', user.id)
     .order('created_at', { ascending: false })
 
   if (error) {

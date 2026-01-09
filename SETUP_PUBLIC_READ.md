@@ -19,6 +19,11 @@ CREATE POLICY "about_section_public_read"
 CREATE POLICY "certifications_public_read"
   ON public.certifications FOR SELECT
   USING (true);
+
+-- Allow public read access to projects
+CREATE POLICY "projects_public_read"
+  ON public.projects FOR SELECT
+  USING (true);
 ```
 
 ## Steps:
