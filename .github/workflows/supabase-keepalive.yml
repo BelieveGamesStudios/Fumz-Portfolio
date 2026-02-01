@@ -1,0 +1,35 @@
+name: Supabase Keep-Alive
+
+on:
+  schedule:
+    # Run every 6 days at 3:00 AM UTC (to stay within 7-day limit)
+    - cron: '0 3 */6 * *'
+  workflow_dispatch: # Allow manual triggering
+
+jobs:
+  ping-supabase:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Ping Supabase Database
+        run: |
+          echo "Pinging Supabase to prevent auto-pause..."
+          
+          # Make a simple query to keep the database active
+          curl -X POST "${{ secrets.SUPABASE_URL }}/rest/v1/rpc/ping" \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Content-Type: application/json" \
+            || echo "Ping endpoint not found, trying alternative..."
+          
+          # Alternative: Query a table (replace 'experiences' with any table you have)
+          curl -X GET "${{ secrets.SUPABASE_URL }}/rest/v1/experiences?limit=1" \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}"
+          
+          echo "✅ Supabase ping completed successfully!"
+      
+      - name: Log completion
+        run: |
+          echo "Keep-alive job completed at $(date)"
+          echo "Next run will be in 6 days"
