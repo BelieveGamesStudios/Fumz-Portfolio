@@ -32,13 +32,13 @@ export function AdminDashboard() {
         </div>
 
         <Tabs defaultValue="projects" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-6 h-auto">
-            <TabsTrigger value="projects" className="text-white">Projects</TabsTrigger>
-            <TabsTrigger value="experiences" className="text-white">XP</TabsTrigger>
-            <TabsTrigger value="skills" className="text-white">Skills</TabsTrigger>
-            <TabsTrigger value="certs" className="text-white">Certifications</TabsTrigger>
-            <TabsTrigger value="about" className="text-white">About Section</TabsTrigger>
-            <TabsTrigger value="contacts" className="text-white">Contact Submissions</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 h-auto gap-1">
+            <TabsTrigger value="projects" className="text-white text-xs sm:text-sm px-2 py-2">Projects</TabsTrigger>
+            <TabsTrigger value="experiences" className="text-white text-xs sm:text-sm px-2 py-2">XP</TabsTrigger>
+            <TabsTrigger value="skills" className="text-white text-xs sm:text-sm px-2 py-2">Skills</TabsTrigger>
+            <TabsTrigger value="certs" className="text-white text-xs sm:text-sm px-2 py-2">Certs</TabsTrigger>
+            <TabsTrigger value="about" className="text-white text-xs sm:text-sm px-2 py-2">About</TabsTrigger>
+            <TabsTrigger value="contacts" className="text-white text-xs sm:text-sm px-2 py-2">Contacts</TabsTrigger>
           </TabsList>
 
           <TabsContent value="projects" className="space-y-4">

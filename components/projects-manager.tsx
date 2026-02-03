@@ -210,7 +210,7 @@ export function ProjectsManager() {
             Add New Project
           </Button>
         </DialogTrigger>
-        <DialogContent className="max-w-[95vw] w-full h-[90vh] flex flex-col p-0 gap-0">
+        <DialogContent className="max-w-[95vw] sm:max-w-[90vw] md:max-w-[85vw] lg:max-w-4xl w-full h-[90vh] flex flex-col p-0 gap-0">
           <div className="p-6 pb-2">
             <DialogHeader>
               <DialogTitle>{editingId ? 'Edit Project' : 'Add New Project'}</DialogTitle>
@@ -221,7 +221,7 @@ export function ProjectsManager() {
           </div>
 
           <div className="flex-1 overflow-y-auto p-6 pt-2 space-y-6">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="title">Project Title *</Label>
                 <Input
@@ -257,7 +257,7 @@ export function ProjectsManager() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="platforms">Platforms (comma separated)</Label>
                 <Input
@@ -279,7 +279,7 @@ export function ProjectsManager() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="video_url">Video URL (YouTube/Vimeo)</Label>
                 <Input
@@ -378,51 +378,51 @@ export function ProjectsManager() {
       <div className="grid gap-4">
         {projects.map((project) => (
           <Card key={project.id} className="p-4">
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex-1">
-                <h3 className="font-semibold text-lg">{project.title}</h3>
-                <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-base sm:text-lg break-words">{project.title}</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground mt-1 line-clamp-2 break-words">
                   {project.description.replace(/<[^>]*>/g, '')}
                 </p>
-                <div className="flex gap-2 mt-2">
-                  <span className="text-xs bg-secondary px-2 py-1 rounded">{project.category}</span>
-                  {project.platform && <span className="text-xs bg-secondary px-2 py-1 rounded">{project.platform}</span>}
+                <div className="flex flex-wrap gap-1.5 sm:gap-2 mt-2">
+                  <span className="text-[10px] sm:text-xs bg-secondary px-1.5 sm:px-2 py-0.5 sm:py-1 rounded">{project.category}</span>
+                  {project.platform && <span className="text-[10px] sm:text-xs bg-secondary px-1.5 sm:px-2 py-0.5 sm:py-1 rounded">{project.platform}</span>}
                   {project.video_url && (
-                    <span className="text-xs bg-primary/20 text-primary px-2 py-1 rounded flex items-center gap-1">
-                      <Film className="w-3 h-3" />
+                    <span className="text-[10px] sm:text-xs bg-primary/20 text-primary px-1.5 sm:px-2 py-0.5 sm:py-1 rounded flex items-center gap-1">
+                      <Film className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                       Video
                     </span>
                   )}
                   {project.download_url && (
-                    <span className="text-xs bg-green-500/20 text-green-500 px-2 py-1 rounded flex items-center gap-1">
-                      <Download className="w-3 h-3" />
+                    <span className="text-[10px] sm:text-xs bg-green-500/20 text-green-500 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded flex items-center gap-1">
+                      <Download className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                       Link
                     </span>
                   )}
                   {project.screenshots && project.screenshots.length > 0 && (
-                    <span className="text-xs bg-primary/20 text-primary px-2 py-1 rounded">
+                    <span className="text-[10px] sm:text-xs bg-primary/20 text-primary px-1.5 sm:px-2 py-0.5 sm:py-1 rounded">
                       {project.screenshots.length} screenshots
                     </span>
                   )}
                 </div>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 w-full sm:w-auto sm:flex-shrink-0">
                 <Button
                   size="sm"
                   variant="outline"
                   onClick={() => handleEdit(project)}
-                  className="gap-2"
+                  className="gap-1.5 sm:gap-2 flex-1 sm:flex-initial text-xs sm:text-sm"
                 >
-                  <Edit2 className="w-4 h-4" />
+                  <Edit2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   Edit
                 </Button>
                 <Button
                   size="sm"
                   variant="destructive"
                   onClick={() => handleDelete(project.id)}
-                  className="gap-2"
+                  className="gap-1.5 sm:gap-2 flex-1 sm:flex-initial text-xs sm:text-sm"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   Delete
                 </Button>
               </div>
