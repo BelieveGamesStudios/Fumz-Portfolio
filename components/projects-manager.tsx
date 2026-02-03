@@ -33,7 +33,7 @@ export function ProjectsManager() {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    category: 'games',
+    category: 'xr',
     image: '',
     platforms: '',
     link: '',
@@ -131,7 +131,7 @@ export function ProjectsManager() {
       setFormData({
         title: '',
         description: '',
-        category: 'games',
+        category: 'xr',
         image: '',
         platforms: '',
         link: '',
@@ -187,7 +187,7 @@ export function ProjectsManager() {
     setFormData({
       title: '',
       description: '',
-      category: 'games',
+      category: 'xr',
       image: '',
       platforms: '',
       link: '',
@@ -210,15 +210,17 @@ export function ProjectsManager() {
             Add New Project
           </Button>
         </DialogTrigger>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{editingId ? 'Edit Project' : 'Add New Project'}</DialogTitle>
-            <DialogDescription>
-              {editingId ? 'Update project details' : 'Create a new portfolio project'}
-            </DialogDescription>
-          </DialogHeader>
+        <DialogContent className="max-w-[95vw] w-full h-[90vh] flex flex-col p-0 gap-0">
+          <div className="p-6 pb-2">
+            <DialogHeader>
+              <DialogTitle>{editingId ? 'Edit Project' : 'Add New Project'}</DialogTitle>
+              <DialogDescription>
+                {editingId ? 'Update project details' : 'Create a new portfolio project'}
+              </DialogDescription>
+            </DialogHeader>
+          </div>
 
-          <div className="space-y-6">
+          <div className="flex-1 overflow-y-auto p-6 pt-2 space-y-6">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="title">Project Title *</Label>
@@ -238,7 +240,6 @@ export function ProjectsManager() {
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                   className="w-full px-3 py-2 border border-input rounded-md bg-background"
                 >
-                  <option value="games">Games</option>
                   <option value="xr">XR Apps</option>
                   <option value="mobile">Mobile</option>
                   <option value="desktop">Desktop</option>
@@ -246,12 +247,13 @@ export function ProjectsManager() {
               </div>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2 flex flex-col flex-1 min-h-[400px]">
               <Label htmlFor="description">Description * (Rich Text)</Label>
               <RichTextEditor
                 value={formData.description}
                 onChange={(value) => setFormData({ ...formData, description: value })}
                 placeholder="Project description with formatting support..."
+                className="flex-1"
               />
             </div>
 
@@ -361,6 +363,8 @@ export function ProjectsManager() {
               )}
             </div>
 
+          </div>
+          <div className="p-6 border-t mt-auto bg-background">
             <div className="flex gap-2 justify-end">
               <Button variant="outline" onClick={() => setIsOpen(false)}>
                 Cancel

@@ -61,7 +61,8 @@ export default function ProjectPage() {
   // Helper to convert YouTube/Vimeo URLs to embed format
   function getEmbedUrl(url: string): string | null {
     // YouTube
-    const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/)
+    // Supports: watch?v=, shorts/, embed/, youtu.be/
+    const ytMatch = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=|shorts\/)|youtu\.be\/)([^"&?\/\s]{11})/)
     if (ytMatch) {
       return `https://www.youtube.com/embed/${ytMatch[1]}`
     }

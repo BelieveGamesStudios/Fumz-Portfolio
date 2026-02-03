@@ -7,7 +7,7 @@ import { ArrowUpRight, Gamepad2, Smartphone, Cpu, LucideGlasses } from "lucide-r
 import Link from "next/link"
 import { stripHtml } from "@/lib/utils"
 
-type ProjectCategory = "all" | "games" | "xr" | "mobile" | "desktop"
+type ProjectCategory = "all" | "xr" | "mobile" | "desktop"
 
 interface Project {
   id: string
@@ -38,15 +38,6 @@ const SAMPLE_PROJECTS: Project[] = [
     image: "/augmented-reality-museum-guide.jpg",
     platforms: ["AR", "ARKit", "ARCore"],
     link: "/projects/ar-museum",
-  },
-  {
-    id: "3",
-    title: "Space Odyssey - Game",
-    description: "3D space exploration game with procedurally generated planets and realistic physics",
-    category: "games",
-    image: "/3d-space-game-planets-exploration.jpg",
-    platforms: ["PC", "Console", "Web"],
-    link: "/projects/space-odyssey",
   },
   {
     id: "4",
@@ -84,20 +75,10 @@ const SAMPLE_PROJECTS: Project[] = [
     platforms: ["HoloLens", "Quest"],
     link: "/projects/mr-training",
   },
-  {
-    id: "8",
-    title: "Rhythm Master",
-    description: "Rhythm game with custom song support and global leaderboards",
-    category: "games",
-    image: "/rhythm-music-game-leaderboard.jpg",
-    platforms: ["PC", "Mobile"],
-    link: "/projects/rhythm-master",
-  },
 ]
 
 const CATEGORIES: { label: string; value: ProjectCategory; icon: React.ReactNode }[] = [
   { label: "All", value: "all", icon: null },
-  { label: "Games", value: "games", icon: <Gamepad2 className="w-4 h-4" /> },
   { label: "XR Apps", value: "xr", icon: <LucideGlasses className="w-4 h-4" /> },
   { label: "Mobile", value: "mobile", icon: <Smartphone className="w-4 h-4" /> },
   { label: "Desktop", value: "desktop", icon: <Cpu className="w-4 h-4" /> },
@@ -146,8 +127,8 @@ export function ProjectsSection() {
               key={category.value}
               onClick={() => setActiveCategory(category.value)}
               className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 flex items-center gap-2 ${activeCategory === category.value
-                  ? "bg-primary text-primary-foreground shadow-lg shadow-primary/30 glow-effect"
-                  : "glass text-muted-foreground hover:bg-secondary/50 border-border/50"
+                ? "bg-primary text-primary-foreground shadow-lg shadow-primary/30 glow-effect"
+                : "glass text-muted-foreground hover:bg-secondary/50 border-border/50"
                 }`}
               aria-pressed={activeCategory === category.value}
             >

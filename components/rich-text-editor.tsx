@@ -3,27 +3,28 @@
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import { Button } from '@/components/ui/button'
-import { 
-  Bold, 
-  Italic, 
-  List, 
-  ListOrdered, 
-  Heading2, 
+import {
+  Bold,
+  Italic,
+  List,
+  ListOrdered,
+  Heading2,
   Heading3,
   Quote,
   Code,
   Undo2,
   Redo2
 } from 'lucide-react'
-import './rich-text-editor.css'
+import { cn } from '@/lib/utils'
 
 interface RichTextEditorProps {
   value: string
   onChange: (value: string) => void
   placeholder?: string
+  className?: string
 }
 
-export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorProps) {
+export function RichTextEditor({ value, onChange, placeholder, className }: RichTextEditorProps) {
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -47,8 +48,8 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
   const activeClass = "bg-secondary text-primary"
 
   return (
-    <div className="space-y-2">
-      <div className="border border-input rounded-lg overflow-hidden bg-background">
+    <div className={cn("space-y-2 flex flex-col", className)}>
+      <div className="border border-input rounded-lg overflow-hidden bg-background flex flex-col flex-1">
         {/* Toolbar */}
         <div className="flex flex-wrap gap-1 p-2 bg-secondary/20 border-b border-input">
           <Button
@@ -169,9 +170,9 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
         </div>
 
         {/* Editor */}
-        <EditorContent 
-          editor={editor} 
-          className="rich-text-editor prose prose-invert max-w-none"
+        <EditorContent
+          editor={editor}
+          className="rich-text-editor prose prose-invert max-w-none flex-1 overflow-y-auto min-h-[300px]"
         />
       </div>
 

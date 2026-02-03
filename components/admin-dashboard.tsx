@@ -33,12 +33,12 @@ export function AdminDashboard() {
 
         <Tabs defaultValue="projects" className="space-y-4">
           <TabsList className="grid w-full grid-cols-6 h-auto">
-            <TabsTrigger value="projects">Projects</TabsTrigger>
-            <TabsTrigger value="experiences">XP</TabsTrigger>
-            <TabsTrigger value="skills">Skills</TabsTrigger>
-            <TabsTrigger value="certs">Certifications</TabsTrigger>
-            <TabsTrigger value="about">About Section</TabsTrigger>
-            <TabsTrigger value="contacts">Contact Submissions</TabsTrigger>
+            <TabsTrigger value="projects" className="text-white">Projects</TabsTrigger>
+            <TabsTrigger value="experiences" className="text-white">XP</TabsTrigger>
+            <TabsTrigger value="skills" className="text-white">Skills</TabsTrigger>
+            <TabsTrigger value="certs" className="text-white">Certifications</TabsTrigger>
+            <TabsTrigger value="about" className="text-white">About Section</TabsTrigger>
+            <TabsTrigger value="contacts" className="text-white">Contact Submissions</TabsTrigger>
           </TabsList>
 
           <TabsContent value="projects" className="space-y-4">

@@ -32,7 +32,7 @@ export function HeroSection() {
           </h1>
 
           <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            Games, VR/AR/MR applications, and interactive digital experiences that push the boundaries of technology
+            VR/AR/MR applications and interactive digital experiences that push the boundaries of technology
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
