@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label'
 import { useToast } from '@/components/ui/use-toast'
 import { RichTextEditor } from './rich-text-editor'
 import { Trash2, Edit2, Plus, X, Film, Download } from 'lucide-react'
+import { ImageUpload } from '@/components/ui/image-upload'
 
 interface Project {
   id: string
@@ -269,12 +270,11 @@ export function ProjectsManager() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="image">Featured Image URL</Label>
-                <Input
-                  id="image"
+                <Label htmlFor="image">Featured Image</Label>
+                <ImageUpload
                   value={formData.image}
-                  onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                  placeholder="https://example.com/image.jpg"
+                  onChange={(url) => setFormData({ ...formData, image: url })}
+                  bucketName="Project Pictures"
                 />
               </div>
             </div>
@@ -307,12 +307,11 @@ export function ProjectsManager() {
 
               <div className="space-y-3">
                 <div className="space-y-2">
-                  <Label htmlFor="screenshot-url">Screenshot URL</Label>
-                  <Input
-                    id="screenshot-url"
+                  <Label htmlFor="screenshot-url">Screenshot</Label>
+                  <ImageUpload
                     value={screenshotInput}
-                    onChange={(e) => setScreenshotInput(e.target.value)}
-                    placeholder="https://example.com/screenshot.jpg"
+                    onChange={(url) => setScreenshotInput(url)}
+                    bucketName="screenshots"
                   />
                 </div>
 
