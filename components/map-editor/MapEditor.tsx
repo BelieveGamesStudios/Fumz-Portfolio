@@ -40,6 +40,7 @@ export function MapEditor({ fullScreen = false }: MapEditorProps) {
   // Scene state
   const [buildings, setBuildings] = useState<PlacedBuilding[]>(DEFAULT_BUILDINGS)
   const [waypoints, setWaypoints] = useState<RouteWaypointMap>({})
+  const [disabledRoutes, setDisabledRoutes] = useState<string[]>([])
   const [assets, setAssets] = useState<MapAsset[]>([])
 
   // Editor UI state
@@ -79,6 +80,9 @@ export function MapEditor({ fullScreen = false }: MapEditorProps) {
         if (cfg.waypoints && Object.keys(cfg.waypoints).length > 0) {
           setWaypoints({ ...defaultWaypoints, ...cfg.waypoints })
         }
+        if (cfg.disabled_routes) {
+          setDisabledRoutes(cfg.disabled_routes)
+        }
         if (cfg.published_at) {
           setPublishedAt(cfg.published_at)
         }
@@ -90,6 +94,7 @@ export function MapEditor({ fullScreen = false }: MapEditorProps) {
             const parsed = JSON.parse(cached)
             if (parsed.buildings) setBuildings(parsed.buildings)
             if (parsed.waypoints) setWaypoints({ ...defaultWaypoints, ...parsed.waypoints })
+            if (parsed.disabled_routes) setDisabledRoutes(parsed.disabled_routes)
           }
         } catch (e) {
           console.warn("Could not read local draft backup:", e)
@@ -182,6 +187,24 @@ export function MapEditor({ fullScreen = false }: MapEditorProps) {
     setHasUnsavedChanges(true)
   }, [])
 
+  const handleToggleRouteDisabled = useCallback((routeId: string) => {
+    setDisabledRoutes((prev) => {
+      const isCurrentlyDisabled = prev.includes(routeId)
+      const next = isCurrentlyDisabled
+        ? prev.filter((id) => id !== routeId)
+        : [...prev, routeId]
+
+      setHasUnsavedChanges(true)
+      toast({
+        title: isCurrentlyDisabled ? "Route Path Enabled" : "Route Path Disabled",
+        description: isCurrentlyDisabled
+          ? `Traffic path enabled for ${routeId}.`
+          : `Traffic path disabled. Cars will not drive on this route.`,
+      })
+      return next
+    })
+  }, [toast])
+
   const handleResetRoute = useCallback((routeId: string) => {
     const defaults = getDefaultRouteWaypoints()
     if (defaults[routeId]) {
@@ -189,6 +212,7 @@ export function MapEditor({ fullScreen = false }: MapEditorProps) {
         ...prev,
         [routeId]: defaults[routeId],
       }))
+      setDisabledRoutes((prev) => prev.filter((id) => id !== routeId))
       setSelectedWaypointIndex(null)
       setHasUnsavedChanges(true)
       toast({
@@ -196,6 +220,18 @@ export function MapEditor({ fullScreen = false }: MapEditorProps) {
         description: "Restored route waypoints to original road centerline.",
       })
     }
+  }, [toast])
+
+  const handleResetAllRoutes = useCallback(() => {
+    const defaults = getDefaultRouteWaypoints()
+    setWaypoints(defaults)
+    setDisabledRoutes([])
+    setSelectedWaypointIndex(null)
+    setHasUnsavedChanges(true)
+    toast({
+      title: "All Routes Reset",
+      description: "Restored all traffic routes to default road centerlines.",
+    })
   }, [toast])
 
   // Asset handlers
@@ -222,10 +258,10 @@ export function MapEditor({ fullScreen = false }: MapEditorProps) {
     try {
       localStorage.setItem(
         "fumz_city_draft",
-        JSON.stringify({ buildings, waypoints, savedAt: new Date().toISOString() })
+        JSON.stringify({ buildings, waypoints, disabled_routes: disabledRoutes, savedAt: new Date().toISOString() })
       )
 
-      const res = await saveDraftMapConfig({ buildings, waypoints })
+      const res = await saveDraftMapConfig({ buildings, waypoints, disabled_routes: disabledRoutes })
       if (res.success) {
         setHasUnsavedChanges(false)
         toast({
@@ -254,7 +290,7 @@ export function MapEditor({ fullScreen = false }: MapEditorProps) {
   const handlePublish = async () => {
     setIsPublishing(true)
     try {
-      const res = await publishMapConfig({ buildings, waypoints })
+      const res = await publishMapConfig({ buildings, waypoints, disabled_routes: disabledRoutes })
       if (res.success) {
         setPublishedAt(res.publishedAt || new Date().toISOString())
         setHasUnsavedChanges(false)
@@ -314,6 +350,7 @@ export function MapEditor({ fullScreen = false }: MapEditorProps) {
           selectedBuildingId={selectedBuildingId}
           onSelectBuilding={setSelectedBuildingId}
           waypoints={waypoints}
+          disabledRoutes={disabledRoutes}
           onChangeWaypoints={handleUpdateWaypoints}
           activeRouteId={activeRouteId}
           selectedWaypointIndex={selectedWaypointIndex}
@@ -334,11 +371,14 @@ export function MapEditor({ fullScreen = false }: MapEditorProps) {
             onDuplicateBuilding={handleDuplicateBuilding}
             onDeleteBuilding={handleDeleteBuilding}
             waypoints={waypoints}
+            disabledRoutes={disabledRoutes}
             activeRouteId={activeRouteId}
             selectedWaypointIndex={selectedWaypointIndex}
             onChangeWaypoints={handleUpdateWaypoints}
             onSelectWaypoint={setSelectedWaypointIndex}
+            onToggleRouteDisabled={handleToggleRouteDisabled}
             onResetRoute={handleResetRoute}
+            onResetAllRoutes={handleResetAllRoutes}
           />
         </div>
       )}
@@ -416,6 +456,10 @@ export function MapEditor({ fullScreen = false }: MapEditorProps) {
               setActiveRouteId(id)
               setSelectedWaypointIndex(null)
             }}
+            disabledRoutes={disabledRoutes}
+            onToggleRouteDisabled={handleToggleRouteDisabled}
+            onResetActiveRoute={() => handleResetRoute(activeRouteId)}
+            onResetAllRoutes={handleResetAllRoutes}
             onSaveDraft={handleSaveDraft}
             onPublish={handlePublish}
             isSaving={isSaving}
@@ -448,6 +492,10 @@ export function MapEditor({ fullScreen = false }: MapEditorProps) {
           setActiveRouteId(id)
           setSelectedWaypointIndex(null)
         }}
+        disabledRoutes={disabledRoutes}
+        onToggleRouteDisabled={handleToggleRouteDisabled}
+        onResetActiveRoute={() => handleResetRoute(activeRouteId)}
+        onResetAllRoutes={handleResetAllRoutes}
         onSaveDraft={handleSaveDraft}
         onPublish={handlePublish}
         isSaving={isSaving}

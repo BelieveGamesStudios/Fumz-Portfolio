@@ -77,6 +77,7 @@ export function CityScene() {
             <Traffic
               showPathLines={false}
               routeOverrides={mapConfig?.waypoints}
+              disabledRoutes={mapConfig?.disabled_routes}
             />
           </Suspense>
           {isConfigLoaded && (

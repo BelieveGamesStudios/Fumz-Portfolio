@@ -19,6 +19,7 @@ export interface CityMapConfig {
   status: 'draft' | 'published'
   buildings: PlacedBuilding[]
   waypoints: RouteWaypointMap
+  disabled_routes?: string[]
   published_at?: string | null
   updated_at?: string
   created_at?: string

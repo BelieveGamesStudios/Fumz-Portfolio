@@ -220,19 +220,22 @@ function VisualPathLine({ route }: { route: RouteDefinition }) {
 export function Traffic({
   showPathLines = false,
   routeOverrides,
+  disabledRoutes,
 }: {
   showPathLines?: boolean
   routeOverrides?: Record<string, [number, number, number][]>
+  disabledRoutes?: string[]
 }) {
   const [mounted, setMounted] = useState(false)
   useEffect(() => setMounted(true), [])
 
-  const routes = useMemo(() => generateTrafficRoutes(routeOverrides), [routeOverrides])
+  const routes = useMemo(() => generateTrafficRoutes(routeOverrides, disabledRoutes), [routeOverrides, disabledRoutes])
   const trafficRegistry = useRef<Map<string, CarState>>(new Map())
 
-  // Spawn random 5 to 20 cars evenly distributed across routes
+  // Spawn random 5 to 15 cars evenly distributed across routes
   const carConfigs = useMemo(() => {
-    const count = Math.floor(Math.random() * 16) + 5
+    if (!routes || routes.length === 0) return []
+    const count = Math.min(15, Math.floor(Math.random() * 11) + 5)
     const configs = []
 
     for (let i = 0; i < count; i++) {

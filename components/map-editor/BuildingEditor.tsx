@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useRef, useEffect } from "react"
+import React, { useRef, useEffect, useCallback } from "react"
 import * as THREE from "three"
 import { TransformControls } from "@react-three/drei"
 import { Buildings } from "@/components/city/Buildings"
@@ -13,6 +13,7 @@ interface BuildingEditorProps {
   onSelectBuilding: (id: string | null) => void
   transformMode: "translate" | "rotate" | "scale"
   isDraggingRef: React.MutableRefObject<boolean>
+  onDraggingChange?: (isDragging: boolean) => void
   visible: boolean
 }
 
@@ -23,6 +24,7 @@ export function BuildingEditor({
   onSelectBuilding,
   transformMode,
   isDraggingRef,
+  onDraggingChange,
   visible,
 }: BuildingEditorProps) {
   const transformRef = useRef<any>(null)
@@ -51,7 +53,24 @@ export function BuildingEditor({
     }
   }, [selectedBuildingId, selectedBuilding?.position, selectedBuilding?.rotation, selectedBuilding?.scale])
 
-  const handleTransformChange = () => {
+  // Attach dragging-changed listener
+  useEffect(() => {
+    const controls = transformRef.current
+    if (!controls) return
+
+    const handleDraggingChanged = (event: any) => {
+      const dragging = !!event.value
+      isDraggingRef.current = dragging
+      if (onDraggingChange) onDraggingChange(dragging)
+    }
+
+    controls.addEventListener("dragging-changed", handleDraggingChanged)
+    return () => {
+      controls.removeEventListener("dragging-changed", handleDraggingChanged)
+    }
+  }, [selectedBuildingId, isDraggingRef, onDraggingChange])
+
+  const handleTransformObjectChange = useCallback(() => {
     if (!anchorRef.current || !selectedBuildingId) return
     const obj = anchorRef.current
 
@@ -78,7 +97,7 @@ export function BuildingEditor({
     })
 
     onChangeBuildings(updated)
-  }
+  }, [buildings, selectedBuildingId, onChangeBuildings])
 
   return (
     <group name="BuildingEditor">
@@ -105,16 +124,7 @@ export function BuildingEditor({
             object={anchorRef as any}
             mode={transformMode}
             size={0.8}
-            translationSnap={0.5}
-            rotationSnap={Math.PI / 12} // 15 degrees snap
-            scaleSnap={0.1}
-            onMouseDown={() => {
-              isDraggingRef.current = true
-            }}
-            onMouseUp={() => {
-              isDraggingRef.current = false
-            }}
-            onChange={handleTransformChange}
+            onObjectChange={handleTransformObjectChange}
           />
         </>
       )}

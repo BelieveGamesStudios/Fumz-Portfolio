@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react"
 import { useProgress } from "@react-three/drei"
-import { Loader2, Sparkles, Building2 } from "lucide-react"
+import { Loader2, Building2 } from "lucide-react"
 
 interface CityLoadingScreenProps {
   isConfigLoaded: boolean
@@ -90,9 +90,8 @@ export function CityLoadingScreen({ isConfigLoaded, onLoaded }: CityLoadingScree
         <h1 className="text-2xl md:text-4xl font-bold tracking-wider text-white font-mono uppercase drop-shadow-md">
           Believe City Loading
         </h1>
-        <p className="mt-2 text-sm text-slate-300 font-sans flex items-center gap-1.5">
-          <Sparkles className="w-3.5 h-3.5 text-amber-400 inline" />
-          <span>Generating layout & preparing simulation...</span>
+        <p className="mt-2 text-sm text-slate-300 font-sans">
+          Loading layout & preparing simulation...
         </p>
 
         {/* Progress Bar Container */}

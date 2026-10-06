@@ -90,15 +90,24 @@ export function getDefaultRouteWaypoints(): Record<string, [number, number, numb
 }
 
 export function generateTrafficRoutes(
-  overrides?: Record<string, [number, number, number][]>
+  overrides?: Record<string, [number, number, number][]>,
+  disabledRoutes?: string[]
 ): RouteDefinition[] {
   const routes: RouteDefinition[] = []
+  const disabledSet = new Set(disabledRoutes || [])
+  const isRoundaboutDisabled = disabledSet.has("route-roundabout-loop")
+
+  function getRoutePoints(id: string, defaultPts: THREE.Vector3[]): THREE.Vector3[] {
+    const custom = overrides?.[id]
+    if (custom && custom.length >= 3) {
+      return custom.map((p) => new THREE.Vector3(p[0], p[1], p[2]))
+    }
+    return defaultPts
+  }
 
   // ==========================================================================
   // ROUTE 0: CLOCKWISE OUTER PERIMETER (Inner Lane)
   // Color: Lime Green (#22c55e)
-  // Follows: Top East -> TR Corner -> Right South -> BR Corner ->
-  //          Bottom West -> BL Corner -> Left North -> TL Corner
   // ==========================================================================
   const r0_pts: THREE.Vector3[] = [
     // Top Edge (z = -20.6)
@@ -119,28 +128,20 @@ export function generateTrafficRoutes(
     ...sampleArc(cxL, czT, R_INNER, Math.PI, (3 * Math.PI) / 2),
   ]
 
-  function getRoutePoints(id: string, defaultPts: THREE.Vector3[]): THREE.Vector3[] {
-    const custom = overrides?.[id]
-    if (custom && custom.length >= 3) {
-      return custom.map((p) => new THREE.Vector3(p[0], p[1], p[2]))
-    }
-    return defaultPts
+  if (!disabledSet.has("route-clockwise-outer")) {
+    const p0 = getRoutePoints("route-clockwise-outer", r0_pts)
+    routes.push({
+      id: "route-clockwise-outer",
+      name: "Outer Clockwise (Inner Lane)",
+      color: "#22c55e",
+      points: p0,
+      curve: new THREE.CatmullRomCurve3(p0, true, "centripetal", 0.0),
+    })
   }
-
-  const p0 = getRoutePoints("route-clockwise-outer", r0_pts)
-  routes.push({
-    id: "route-clockwise-outer",
-    name: "Outer Clockwise (Inner Lane)",
-    color: "#22c55e",
-    points: p0,
-    curve: new THREE.CatmullRomCurve3(p0, true, "centripetal", 0.0),
-  })
 
   // ==========================================================================
   // ROUTE 1: COUNTER-CLOCKWISE OUTER PERIMETER (Outer Lane)
   // Color: Cyan (#06b6d4)
-  // Follows: Top West -> TL Corner -> Left South -> BL Corner ->
-  //          Bottom East -> BR Corner -> Right North -> TR Corner
   // ==========================================================================
   const r1_pts: THREE.Vector3[] = [
     // Top Edge (z = -23.4)
@@ -161,87 +162,103 @@ export function generateTrafficRoutes(
     ...sampleArc(cxR, czT, R_OUTER, 2 * Math.PI, (3 * Math.PI) / 2),
   ]
 
-  const p1 = getRoutePoints("route-counter-clockwise-outer", r1_pts)
-  routes.push({
-    id: "route-counter-clockwise-outer",
-    name: "Outer Counter-Clockwise (Outer Lane)",
-    color: "#06b6d4",
-    points: p1,
-    curve: new THREE.CatmullRomCurve3(p1, true, "centripetal", 0.0),
-  })
+  if (!disabledSet.has("route-counter-clockwise-outer")) {
+    const p1 = getRoutePoints("route-counter-clockwise-outer", r1_pts)
+    routes.push({
+      id: "route-counter-clockwise-outer",
+      name: "Outer Counter-Clockwise (Outer Lane)",
+      color: "#06b6d4",
+      points: p1,
+      curve: new THREE.CatmullRomCurve3(p1, true, "centripetal", 0.0),
+    })
+  }
 
   // ==========================================================================
   // ROUTE 2: NORTH-SOUTH TWO-WAY THOROUGHFARE
   // Color: Amber (#f59e0b)
-  // Drives South in right lane (x = 1.4), enters Roundabout, circles West side,
-  // exits South spoke in right lane (x = 1.4), loops at South stub, drives
-  // North in right lane (x = -1.4), circles East side of Roundabout, loops North.
   // ==========================================================================
-  const r2_pts: THREE.Vector3[] = [
-    // Southbound: down North spoke (x = 1.4)
-    ...sampleLine(LANE_OFFSET, -30, LANE_OFFSET, -9.0),
-    // Entering Roundabout: counter-clockwise west arc (from 3*PI/2 through PI to PI/2)
-    ...sampleArc(0, 0, R_ROUNDABOUT, (3 * Math.PI) / 2, Math.PI / 2),
-    // Exiting South spoke Southbound (x = 1.4)
-    ...sampleLine(LANE_OFFSET, 9.0, LANE_OFFSET, 30),
-    // Smooth U-turn at South Stub from x = 1.4 to x = -1.4
-    ...sampleArc(0, 30, LANE_OFFSET, 0, Math.PI),
-    // Northbound: up South spoke (x = -1.4)
-    ...sampleLine(-LANE_OFFSET, 30, -LANE_OFFSET, 9.0),
-    // Entering Roundabout: counter-clockwise east arc (from PI/2 through 0 to -PI/2)
-    ...sampleArc(0, 0, R_ROUNDABOUT, Math.PI / 2, -Math.PI / 2),
-    // Exiting North spoke Northbound (x = -1.4)
-    ...sampleLine(-LANE_OFFSET, -9.0, -LANE_OFFSET, -30),
-    // Smooth U-turn at North Stub from x = -1.4 to x = 1.4
-    ...sampleArc(0, -30, LANE_OFFSET, Math.PI, 0),
-  ]
+  const r2_pts: THREE.Vector3[] = isRoundaboutDisabled
+    ? [
+        // Bypass roundabout: stay on North & South spokes without entering center ring
+        ...sampleLine(LANE_OFFSET, -30, LANE_OFFSET, -9.0),
+        ...sampleArc(0, -9.0, LANE_OFFSET, 0, Math.PI),
+        ...sampleLine(-LANE_OFFSET, -9.0, -LANE_OFFSET, -30),
+        ...sampleArc(0, -30, LANE_OFFSET, Math.PI, 0),
+      ]
+    : [
+        // Southbound: down North spoke (x = 1.4)
+        ...sampleLine(LANE_OFFSET, -30, LANE_OFFSET, -9.0),
+        // Entering Roundabout: counter-clockwise west arc (from 3*PI/2 through PI to PI/2)
+        ...sampleArc(0, 0, R_ROUNDABOUT, (3 * Math.PI) / 2, Math.PI / 2),
+        // Exiting South spoke Southbound (x = 1.4)
+        ...sampleLine(LANE_OFFSET, 9.0, LANE_OFFSET, 30),
+        // Smooth U-turn at South Stub from x = 1.4 to x = -1.4
+        ...sampleArc(0, 30, LANE_OFFSET, 0, Math.PI),
+        // Northbound: up South spoke (x = -1.4)
+        ...sampleLine(-LANE_OFFSET, 30, -LANE_OFFSET, 9.0),
+        // Entering Roundabout: counter-clockwise east arc (from PI/2 through 0 to -PI/2)
+        ...sampleArc(0, 0, R_ROUNDABOUT, Math.PI / 2, -Math.PI / 2),
+        // Exiting North spoke Northbound (x = -1.4)
+        ...sampleLine(-LANE_OFFSET, -9.0, -LANE_OFFSET, -30),
+        // Smooth U-turn at North Stub from x = -1.4 to x = 1.4
+        ...sampleArc(0, -30, LANE_OFFSET, Math.PI, 0),
+      ]
 
-  const p2 = getRoutePoints("route-north-south-artery", r2_pts)
-  routes.push({
-    id: "route-north-south-artery",
-    name: "North-South Boulevard (Two-Way)",
-    color: "#f59e0b",
-    points: p2,
-    curve: new THREE.CatmullRomCurve3(p2, true, "centripetal", 0.0),
-  })
+  if (!disabledSet.has("route-north-south-artery")) {
+    const p2 = getRoutePoints("route-north-south-artery", r2_pts)
+    routes.push({
+      id: "route-north-south-artery",
+      name: "North-South Boulevard (Two-Way)",
+      color: "#f59e0b",
+      points: p2,
+      curve: new THREE.CatmullRomCurve3(p2, true, "centripetal", 0.0),
+    })
+  }
 
   // ==========================================================================
   // ROUTE 3: EAST-WEST TWO-WAY THOROUGHFARE
   // Color: Pink (#ec4899)
-  // Drives East in right lane (z = 1.4), enters Roundabout, circles South side,
-  // exits East spoke in right lane (z = 1.4), loops at East stub, drives
-  // West in right lane (z = -1.4), circles North side of Roundabout, loops West.
   // ==========================================================================
-  const r3_pts: THREE.Vector3[] = [
-    // Eastbound: along West spoke (z = 1.4)
-    ...sampleLine(-42, LANE_OFFSET, -9.0, LANE_OFFSET),
-    // Roundabout South arc: from PI through PI/2 to 0
-    ...sampleArc(0, 0, R_ROUNDABOUT, Math.PI, 0),
-    // Eastbound: along East spoke (z = 1.4)
-    ...sampleLine(9.0, LANE_OFFSET, 42, LANE_OFFSET),
-    // Smooth U-turn at East Stub from z = 1.4 to z = -1.4
-    ...sampleArc(42, 0, LANE_OFFSET, Math.PI / 2, -Math.PI / 2),
-    // Westbound: along East spoke (z = -1.4)
-    ...sampleLine(42, -LANE_OFFSET, 9.0, -LANE_OFFSET),
-    // Roundabout North arc: from 0 through -PI/2 to -PI
-    ...sampleArc(0, 0, R_ROUNDABOUT, 0, -Math.PI),
-    // Westbound: along West spoke (z = -1.4)
-    ...sampleLine(-9.0, -LANE_OFFSET, -42, -LANE_OFFSET),
-    // Smooth U-turn at West Stub from z = -1.4 to z = 1.4
-    ...sampleArc(-42, 0, LANE_OFFSET, (3 * Math.PI) / 2, Math.PI / 2),
-  ]
+  const r3_pts: THREE.Vector3[] = isRoundaboutDisabled
+    ? [
+        // Bypass roundabout: stay on West & East spokes without entering center ring
+        ...sampleLine(-42, LANE_OFFSET, -9.0, LANE_OFFSET),
+        ...sampleArc(-9.0, 0, LANE_OFFSET, Math.PI / 2, (3 * Math.PI) / 2),
+        ...sampleLine(-9.0, -LANE_OFFSET, -42, -LANE_OFFSET),
+        ...sampleArc(-42, 0, LANE_OFFSET, (3 * Math.PI) / 2, Math.PI / 2),
+      ]
+    : [
+        // Eastbound: along West spoke (z = 1.4)
+        ...sampleLine(-42, LANE_OFFSET, -9.0, LANE_OFFSET),
+        // Roundabout South arc: from PI through PI/2 to 0
+        ...sampleArc(0, 0, R_ROUNDABOUT, Math.PI, 0),
+        // Eastbound: along East spoke (z = 1.4)
+        ...sampleLine(9.0, LANE_OFFSET, 42, LANE_OFFSET),
+        // Smooth U-turn at East Stub from z = 1.4 to z = -1.4
+        ...sampleArc(42, 0, LANE_OFFSET, Math.PI / 2, -Math.PI / 2),
+        // Westbound: along East spoke (z = -1.4)
+        ...sampleLine(42, -LANE_OFFSET, 9.0, -LANE_OFFSET),
+        // Roundabout North arc: from 0 through -PI/2 to -PI
+        ...sampleArc(0, 0, R_ROUNDABOUT, 0, -Math.PI),
+        // Westbound: along West spoke (z = -1.4)
+        ...sampleLine(-9.0, -LANE_OFFSET, -42, -LANE_OFFSET),
+        // Smooth U-turn at West Stub from z = -1.4 to z = 1.4
+        ...sampleArc(-42, 0, LANE_OFFSET, (3 * Math.PI) / 2, Math.PI / 2),
+      ]
 
-  const p3 = getRoutePoints("route-east-west-artery", r3_pts)
-  routes.push({
-    id: "route-east-west-artery",
-    name: "East-West Boulevard (Two-Way)",
-    color: "#ec4899",
-    points: p3,
-    curve: new THREE.CatmullRomCurve3(p3, true, "centripetal", 0.0),
-  })
+  if (!disabledSet.has("route-east-west-artery")) {
+    const p3 = getRoutePoints("route-east-west-artery", r3_pts)
+    routes.push({
+      id: "route-east-west-artery",
+      name: "East-West Boulevard (Two-Way)",
+      color: "#ec4899",
+      points: p3,
+      curve: new THREE.CatmullRomCurve3(p3, true, "centripetal", 0.0),
+    })
+  }
 
   // ==========================================================================
-  // ROUTE 4: CENTRAL ROUNDABOUT CIRCULATION LOOP
+  // ROUTE 4: CENTRAL ROUNDABOUT CIRCULATION LOOP (Center Path)
   // Color: Gold / Yellow (#eab308)
   // A continuous smooth circular orbit around the central roundabout island!
   // ==========================================================================
@@ -249,14 +266,16 @@ export function generateTrafficRoutes(
     ...sampleArc(0, 0, R_ROUNDABOUT, 0, 2 * Math.PI, 2.0),
   ]
 
-  const p4 = getRoutePoints("route-roundabout-loop", r4_pts)
-  routes.push({
-    id: "route-roundabout-loop",
-    name: "Central Roundabout Cruise",
-    color: "#eab308",
-    points: p4,
-    curve: new THREE.CatmullRomCurve3(p4, true, "centripetal", 0.0),
-  })
+  if (!disabledSet.has("route-roundabout-loop")) {
+    const p4 = getRoutePoints("route-roundabout-loop", r4_pts)
+    routes.push({
+      id: "route-roundabout-loop",
+      name: "Central Roundabout Cruise",
+      color: "#eab308",
+      points: p4,
+      curve: new THREE.CatmullRomCurve3(p4, true, "centripetal", 0.0),
+    })
+  }
 
   return routes
 }

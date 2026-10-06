@@ -17,7 +17,9 @@ import {
   PlusCircle,
   RotateCcw,
   Sliders,
-  CheckCircle2,
+  Eye,
+  EyeOff,
+  Route as RouteIcon,
 } from "lucide-react"
 import { PlacedBuilding, RouteWaypointMap } from "./types"
 
@@ -31,11 +33,14 @@ interface InspectorProps {
   onDeleteBuilding: (id: string) => void
   // Waypoint inspection
   waypoints: RouteWaypointMap
+  disabledRoutes?: string[]
   activeRouteId: string
   selectedWaypointIndex: number | null
   onChangeWaypoints: (updated: RouteWaypointMap) => void
   onSelectWaypoint: (idx: number | null) => void
+  onToggleRouteDisabled?: (routeId: string) => void
   onResetRoute: (routeId: string) => void
+  onResetAllRoutes?: () => void
 }
 
 export function Inspector({
@@ -46,11 +51,14 @@ export function Inspector({
   onDuplicateBuilding,
   onDeleteBuilding,
   waypoints,
+  disabledRoutes = [],
   activeRouteId,
   selectedWaypointIndex,
   onChangeWaypoints,
   onSelectWaypoint,
+  onToggleRouteDisabled,
   onResetRoute,
+  onResetAllRoutes,
 }: InspectorProps) {
   const selectedBuilding = buildings.find((b) => b.id === selectedBuildingId)
   const currentRoutePoints = waypoints[activeRouteId] || []
@@ -58,6 +66,8 @@ export function Inspector({
     selectedWaypointIndex !== null && currentRoutePoints[selectedWaypointIndex]
       ? currentRoutePoints[selectedWaypointIndex]
       : null
+
+  const isRouteDisabled = disabledRoutes.includes(activeRouteId)
 
   // Helpers for Building transform inputs
   const handlePosChange = (axis: 0 | 1 | 2, val: number) => {
@@ -98,7 +108,6 @@ export function Inspector({
   const handleInsertWaypointAfter = () => {
     if (selectedWaypointIndex === null || !selectedWaypoint) return
     const updated = [...currentRoutePoints]
-    // Interpolate midpoint with next point or offset slightly
     const nextIdx = (selectedWaypointIndex + 1) % updated.length
     const nextPoint = updated[nextIdx]
     const midPoint: [number, number, number] = [
@@ -138,7 +147,7 @@ export function Inspector({
           <h3 className="text-sm font-semibold">Inspector</h3>
         </div>
         <Badge variant="outline" className="text-[10px] uppercase">
-          {editorMode === "buildings" ? "Building Properties" : "Waypoint Properties"}
+          {editorMode === "buildings" ? "Building Properties" : "Route & Waypoint Path"}
         </Badge>
       </div>
 
@@ -326,103 +335,145 @@ export function Inspector({
           </div>
         )
       ) : (
-        /* Waypoints Inspector */
-        selectedWaypoint ? (
-          <div className="space-y-4 flex-1 overflow-y-auto pr-1">
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-semibold">Waypoint #{selectedWaypointIndex}</span>
-                <Badge variant="outline" className="text-[10px] font-mono">
-                  {currentRoutePoints.length} total points
-                </Badge>
+        /* Waypoints & Route Inspector */
+        <div className="space-y-4 flex-1 overflow-y-auto pr-1">
+          {/* Route Status Header */}
+          <div className="p-2.5 rounded-lg bg-slate-900/60 border border-slate-800 space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <RouteIcon className="w-3.5 h-3.5 text-sky-400" />
+                <span className="text-xs font-semibold text-slate-200 uppercase font-mono">
+                  {activeRouteId.replace("route-", "").replace(/-/g, " ")}
+                </span>
               </div>
-              <p className="text-[11px] text-muted-foreground">
-                Drag the waypoint in the 3D viewport or fine-tune coordinates below.
-              </p>
+              <Badge
+                variant={isRouteDisabled ? "destructive" : "secondary"}
+                className="text-[10px]"
+              >
+                {isRouteDisabled ? "Path Disabled" : "Active Path"}
+              </Badge>
             </div>
 
-            <Separator />
-
-            {/* Coordinates */}
-            <div className="space-y-3">
-              <div>
-                <Label className="text-xs text-muted-foreground block mb-1">X Coordinate</Label>
-                <Input
-                  type="number"
-                  step="0.5"
-                  value={selectedWaypoint[0]}
-                  onChange={(e) => handleWaypointCoordChange(0, parseFloat(e.target.value))}
-                  className="h-8 text-xs font-mono"
-                />
-              </div>
-
-              <div>
-                <Label className="text-xs text-muted-foreground block mb-1">Z Coordinate</Label>
-                <Input
-                  type="number"
-                  step="0.5"
-                  value={selectedWaypoint[2]}
-                  onChange={(e) => handleWaypointCoordChange(2, parseFloat(e.target.value))}
-                  className="h-8 text-xs font-mono"
-                />
-              </div>
-            </div>
-
-            <Separator />
-
-            {/* Waypoint Actions */}
-            <div className="space-y-2 pt-1">
+            {/* Disable / Enable Entire Route Button */}
+            {onToggleRouteDisabled && (
               <Button
-                variant="outline"
+                variant={isRouteDisabled ? "default" : "outline"}
                 size="sm"
-                className="w-full h-8 text-xs gap-1.5 justify-center"
-                onClick={handleInsertWaypointAfter}
+                className={`w-full h-8 text-xs gap-1.5 justify-center font-medium ${
+                  isRouteDisabled
+                    ? "bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm"
+                    : "border-amber-500/40 text-amber-300 hover:bg-amber-500/10"
+                }`}
+                onClick={() => onToggleRouteDisabled(activeRouteId)}
               >
-                <PlusCircle className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Insert Waypoint After</span>
+                {isRouteDisabled ? (
+                  <>
+                    <Eye className="w-3.5 h-3.5" />
+                    <span>Enable Entire Route Path</span>
+                  </>
+                ) : (
+                  <>
+                    <EyeOff className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Disable Entire Route Path</span>
+                  </>
+                )}
               </Button>
-
-              <Button
-                variant="destructive"
-                size="sm"
-                className="w-full h-8 text-xs gap-1.5 justify-center"
-                onClick={handleDeleteWaypoint}
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-                <span>Delete Waypoint</span>
-              </Button>
-
-              <Button
-                variant="ghost"
-                size="sm"
-                className="w-full h-8 text-xs gap-1.5 justify-center text-muted-foreground hover:text-foreground"
-                onClick={() => onResetRoute(activeRouteId)}
-              >
-                <RotateCcw className="w-3.5 h-3.5" />
-                <span>Reset Route to Default</span>
-              </Button>
-            </div>
+            )}
           </div>
-        ) : (
-          <div className="flex-1 flex flex-col items-center justify-center text-center p-4 text-muted-foreground space-y-3">
-            <MapPin className="w-8 h-8 opacity-40 text-amber-400" />
-            <div>
-              <p className="text-xs font-medium text-foreground">No Waypoint Selected</p>
-              <p className="text-[11px] text-muted-foreground mt-1 max-w-[200px]">
-                Click any colored waypoint sphere on the active route line to drag or edit its exact path coordinates.
-              </p>
+
+          <Separator />
+
+          {/* Individual Waypoint Node Details (if selected) */}
+          {selectedWaypoint ? (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold">Waypoint #{selectedWaypointIndex}</span>
+                <span className="text-[10px] text-muted-foreground font-mono">
+                  {currentRoutePoints.length} total points
+                </span>
+              </div>
+
+              {/* Coordinates */}
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Label className="text-xs text-muted-foreground block mb-1">X Coord</Label>
+                  <Input
+                    type="number"
+                    step="0.5"
+                    value={selectedWaypoint[0]}
+                    onChange={(e) => handleWaypointCoordChange(0, parseFloat(e.target.value))}
+                    className="h-8 text-xs font-mono"
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-xs text-muted-foreground block mb-1">Z Coord</Label>
+                  <Input
+                    type="number"
+                    step="0.5"
+                    value={selectedWaypoint[2]}
+                    onChange={(e) => handleWaypointCoordChange(2, parseFloat(e.target.value))}
+                    className="h-8 text-xs font-mono"
+                  />
+                </div>
+              </div>
+
+              {/* Waypoint Actions */}
+              <div className="flex items-center gap-2 pt-1">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1 h-7 text-xs gap-1 justify-center"
+                  onClick={handleInsertWaypointAfter}
+                >
+                  <PlusCircle className="w-3 h-3 text-emerald-400" />
+                  <span>Insert Next</span>
+                </Button>
+
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  className="h-7 text-xs gap-1 justify-center px-2.5"
+                  onClick={handleDeleteWaypoint}
+                >
+                  <Trash2 className="w-3 h-3" />
+                  <span>Delete</span>
+                </Button>
+              </div>
             </div>
+          ) : (
+            <div className="p-3 text-center text-muted-foreground text-[11px] bg-slate-900/30 rounded border border-dashed border-slate-800">
+              Click any node on this route to drag or edit its exact coordinates.
+            </div>
+          )}
+
+          <Separator />
+
+          {/* Reset Options */}
+          <div className="space-y-1.5 pt-1">
             <Button
               variant="outline"
               size="sm"
-              className="text-xs h-7 gap-1"
+              className="w-full h-7 text-xs gap-1.5 justify-center"
               onClick={() => onResetRoute(activeRouteId)}
             >
-              <RotateCcw className="w-3 h-3" />
-              <span>Reset Active Route</span>
+              <RotateCcw className="w-3 h-3 text-sky-400" />
+              <span>Reset This Route Path</span>
             </Button>
+
+            {onResetAllRoutes && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full h-7 text-xs gap-1.5 justify-center text-amber-400 hover:text-amber-300"
+                onClick={onResetAllRoutes}
+              >
+                <RotateCcw className="w-3 h-3 text-amber-400" />
+                <span>Reset All Route Paths</span>
+              </Button>
+            )}
           </div>
-        )
+        </div>
       )}
     </Card>
   )

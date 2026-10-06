@@ -35,11 +35,19 @@ export async function getPublishedMapConfig(): Promise<CityMapConfig | null> {
 
     if (!data) return null
 
+    const rawWaypoints = data.waypoints || {}
+    const disabled_routes: string[] =
+      data.disabled_routes || (rawWaypoints._disabled_routes as string[]) || []
+
+    const cleanWaypoints = { ...rawWaypoints }
+    delete cleanWaypoints._disabled_routes
+
     return {
       id: data.id,
       status: 'published',
       buildings: data.buildings || DEFAULT_BUILDINGS,
-      waypoints: data.waypoints || {},
+      waypoints: cleanWaypoints,
+      disabled_routes,
       published_at: data.published_at,
       updated_at: data.updated_at,
     }
@@ -68,11 +76,19 @@ export async function getDraftMapConfig(): Promise<CityMapConfig | null> {
     .maybeSingle()
 
   if (draftData) {
+    const rawWaypoints = draftData.waypoints || {}
+    const disabled_routes: string[] =
+      draftData.disabled_routes || (rawWaypoints._disabled_routes as string[]) || []
+
+    const cleanWaypoints = { ...rawWaypoints }
+    delete cleanWaypoints._disabled_routes
+
     return {
       id: draftData.id,
       status: 'draft',
       buildings: draftData.buildings || DEFAULT_BUILDINGS,
-      waypoints: draftData.waypoints || {},
+      waypoints: cleanWaypoints,
+      disabled_routes,
       published_at: draftData.published_at,
       updated_at: draftData.updated_at,
     }
@@ -88,11 +104,19 @@ export async function getDraftMapConfig(): Promise<CityMapConfig | null> {
     .maybeSingle()
 
   if (pubData) {
+    const rawWaypoints = pubData.waypoints || {}
+    const disabled_routes: string[] =
+      pubData.disabled_routes || (rawWaypoints._disabled_routes as string[]) || []
+
+    const cleanWaypoints = { ...rawWaypoints }
+    delete cleanWaypoints._disabled_routes
+
     return {
       id: pubData.id,
       status: 'published',
       buildings: pubData.buildings || DEFAULT_BUILDINGS,
-      waypoints: pubData.waypoints || {},
+      waypoints: cleanWaypoints,
+      disabled_routes,
       published_at: pubData.published_at,
       updated_at: pubData.updated_at,
     }
@@ -107,12 +131,18 @@ export async function getDraftMapConfig(): Promise<CityMapConfig | null> {
 export async function saveDraftMapConfig(config: {
   buildings: CityMapConfig['buildings']
   waypoints: CityMapConfig['waypoints']
+  disabled_routes?: string[]
 }): Promise<{ success: boolean; id?: string; error?: string }> {
   try {
     const user = await getAdminUser()
     if (!user) return { success: false, error: 'Unauthorized' }
 
     const supabase = await createClient()
+
+    const waypointsPayload = {
+      ...config.waypoints,
+      _disabled_routes: config.disabled_routes || [],
+    }
 
     // Check if an existing draft exists
     const { data: existingDraft } = await supabase
@@ -127,7 +157,7 @@ export async function saveDraftMapConfig(config: {
         .from('city_map_configs')
         .update({
           buildings: config.buildings,
-          waypoints: config.waypoints,
+          waypoints: waypointsPayload,
           updated_at: new Date().toISOString(),
         })
         .eq('id', existingDraft.id)
@@ -142,7 +172,7 @@ export async function saveDraftMapConfig(config: {
             user_id: user.id,
             status: 'draft',
             buildings: config.buildings,
-            waypoints: config.waypoints,
+            waypoints: waypointsPayload,
             updated_at: new Date().toISOString(),
           },
         ])
@@ -164,6 +194,7 @@ export async function saveDraftMapConfig(config: {
 export async function publishMapConfig(config: {
   buildings: CityMapConfig['buildings']
   waypoints: CityMapConfig['waypoints']
+  disabled_routes?: string[]
 }): Promise<{ success: boolean; publishedAt?: string; error?: string }> {
   try {
     const user = await getAdminUser()
@@ -171,6 +202,11 @@ export async function publishMapConfig(config: {
 
     const supabase = await createClient()
     const now = new Date().toISOString()
+
+    const waypointsPayload = {
+      ...config.waypoints,
+      _disabled_routes: config.disabled_routes || [],
+    }
 
     // Check if existing published config exists to update or insert
     const { data: existingPub } = await supabase
@@ -185,7 +221,7 @@ export async function publishMapConfig(config: {
         .from('city_map_configs')
         .update({
           buildings: config.buildings,
-          waypoints: config.waypoints,
+          waypoints: waypointsPayload,
           published_at: now,
           updated_at: now,
         })
@@ -198,7 +234,7 @@ export async function publishMapConfig(config: {
           user_id: user.id,
           status: 'published',
           buildings: config.buildings,
-          waypoints: config.waypoints,
+          waypoints: waypointsPayload,
           published_at: now,
           updated_at: now,
         },

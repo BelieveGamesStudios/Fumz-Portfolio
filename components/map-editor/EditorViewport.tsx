@@ -24,6 +24,7 @@ interface EditorViewportProps {
   selectedBuildingId: string | null
   onSelectBuilding: (id: string | null) => void
   waypoints: RouteWaypointMap
+  disabledRoutes?: string[]
   onChangeWaypoints: (w: RouteWaypointMap) => void
   activeRouteId: string
   selectedWaypointIndex: number | null
@@ -40,6 +41,7 @@ export function EditorViewport({
   selectedBuildingId,
   onSelectBuilding,
   waypoints,
+  disabledRoutes = [],
   onChangeWaypoints,
   activeRouteId,
   selectedWaypointIndex,
@@ -48,6 +50,7 @@ export function EditorViewport({
   cameraPreset,
 }: EditorViewportProps) {
   const isDraggingRef = useRef(false)
+  const [isDraggingState, setIsDraggingState] = useState(false)
   const orbitRef = useRef<any>(null)
 
   // Move camera based on cameraPreset
@@ -70,12 +73,17 @@ export function EditorViewport({
     controls.update()
   }, [cameraPreset])
 
+  const handleDraggingChange = (dragging: boolean) => {
+    isDraggingRef.current = dragging
+    setIsDraggingState(dragging)
+  }
+
   return (
     <div className="relative w-full h-full min-h-[500px] rounded-xl overflow-hidden bg-slate-950 border border-border shadow-2xl select-none">
       <Canvas
         shadows
         onPointerMissed={() => {
-          if (!isDraggingRef.current) {
+          if (!isDraggingRef.current && !isDraggingState) {
             onSelectBuilding(null)
             onSelectWaypoint(null)
           }
@@ -92,7 +100,7 @@ export function EditorViewport({
         <OrbitControls
           ref={orbitRef}
           makeDefault
-          enabled={!isDraggingRef.current}
+          enabled={!isDraggingState}
           maxPolarAngle={Math.PI / 2.05}
           minDistance={10}
           maxDistance={180}
@@ -126,17 +134,20 @@ export function EditorViewport({
           onSelectBuilding={onSelectBuilding}
           transformMode={transformMode}
           isDraggingRef={isDraggingRef}
+          onDraggingChange={handleDraggingChange}
           visible={editorMode === "buildings"}
         />
 
         {/* 2. Waypoints Layer */}
         <WaypointEditor
           waypoints={waypoints}
+          disabledRoutes={disabledRoutes}
           onChangeWaypoints={onChangeWaypoints}
           activeRouteId={activeRouteId}
           selectedWaypointIndex={selectedWaypointIndex}
           onSelectWaypoint={onSelectWaypoint}
           isDraggingRef={isDraggingRef}
+          onDraggingChange={handleDraggingChange}
           visible={editorMode === "waypoints"}
         />
 
@@ -145,6 +156,7 @@ export function EditorViewport({
           <Traffic
             showPathLines={false}
             routeOverrides={waypoints}
+            disabledRoutes={disabledRoutes}
           />
         )}
 
@@ -173,7 +185,9 @@ export function EditorViewport({
 
       {/* Quick Viewport Navigation Hints */}
       <div className="absolute bottom-3 left-4 z-10 pointer-events-none text-[11px] text-slate-400 bg-slate-900/70 backdrop-blur px-2.5 py-1 rounded border border-white/10 hidden sm:block">
-        Left Click + Drag: Orbit • Right Click: Pan • Scroll: Zoom
+        {editorMode === "waypoints"
+          ? "Click & Drag any node to move • Red/Blue Gizmo for axis precision"
+          : "Left Click + Drag: Orbit • Right Click: Pan • Scroll: Zoom"}
       </div>
     </div>
   )
