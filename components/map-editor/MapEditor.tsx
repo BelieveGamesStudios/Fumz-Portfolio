@@ -21,6 +21,7 @@ import {
   MapAsset,
   DEFAULT_BUILDINGS,
 } from "./types"
+import { BuildingModalOverlay } from "@/components/city/BuildingModalOverlay"
 import { getDefaultRouteWaypoints } from "@/components/city/trafficRoutes"
 import {
   getDraftMapConfig,
@@ -61,6 +62,10 @@ export function MapEditor({ fullScreen = false }: MapEditorProps) {
   const [isPublishing, setIsPublishing] = useState(false)
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
   const [publishedAt, setPublishedAt] = useState<string | null>(null)
+
+  // Modal preview state
+  const [previewBuilding, setPreviewBuilding] = useState<PlacedBuilding | null>(null)
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false)
 
   // Load initial scene state (Draft or Published or defaults)
   useEffect(() => {
@@ -320,7 +325,7 @@ export function MapEditor({ fullScreen = false }: MapEditorProps) {
     <div className={`flex gap-3 overflow-hidden ${fullScreen ? "flex-1 min-h-0 p-3" : "h-[700px] mt-4"}`}>
       {/* Left Panel: Asset Library & Hierarchy */}
       {leftPanelOpen && (
-        <div className="w-80 h-full shrink-0">
+        <div className="w-[340px] h-full shrink-0">
           <AssetLibrary
             assets={assets}
             onAssetUploaded={handleAssetUploaded}
@@ -362,7 +367,7 @@ export function MapEditor({ fullScreen = false }: MapEditorProps) {
 
       {/* Right Panel: Transform & Waypoints Inspector */}
       {rightPanelOpen && (
-        <div className="w-80 h-full shrink-0">
+        <div className="w-[340px] h-full shrink-0">
           <Inspector
             editorMode={editorMode}
             buildings={buildings}
@@ -370,6 +375,10 @@ export function MapEditor({ fullScreen = false }: MapEditorProps) {
             onUpdateBuilding={handleUpdateBuilding}
             onDuplicateBuilding={handleDuplicateBuilding}
             onDeleteBuilding={handleDeleteBuilding}
+            onPreviewBuilding={(b) => {
+              setPreviewBuilding(b)
+              setIsPreviewOpen(true)
+            }}
             waypoints={waypoints}
             disabledRoutes={disabledRoutes}
             activeRouteId={activeRouteId}
@@ -402,7 +411,7 @@ export function MapEditor({ fullScreen = false }: MapEditorProps) {
               <h1 className="text-xs sm:text-sm font-bold tracking-wide uppercase font-mono">
                 City Map Editor
               </h1>
-              <Badge variant="outline" className="text-[10px] text-cyan-400 border-cyan-500/30">
+              <Badge variant="outline" className="text-[10px] text-accent border-primary/30">
                 Full View
               </Badge>
             </div>
@@ -471,6 +480,13 @@ export function MapEditor({ fullScreen = false }: MapEditorProps) {
 
         {/* 3-Column Workspace Filling 100% of remaining screen */}
         {workspaceContent}
+
+        {/* Preview Modal (Same production component for zero drift) */}
+        <BuildingModalOverlay
+          building={previewBuilding}
+          isOpen={isPreviewOpen}
+          onClose={() => setIsPreviewOpen(false)}
+        />
       </div>
     )
   }
@@ -504,6 +520,13 @@ export function MapEditor({ fullScreen = false }: MapEditorProps) {
         publishedAt={publishedAt}
       />
       {workspaceContent}
+
+      {/* Preview Modal */}
+      <BuildingModalOverlay
+        building={previewBuilding}
+        isOpen={isPreviewOpen}
+        onClose={() => setIsPreviewOpen(false)}
+      />
     </div>
   )
 }

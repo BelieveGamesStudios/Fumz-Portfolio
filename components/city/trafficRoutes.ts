@@ -133,7 +133,7 @@ export function generateTrafficRoutes(
     routes.push({
       id: "route-clockwise-outer",
       name: "Outer Clockwise (Inner Lane)",
-      color: "#22c55e",
+      color: "#87482d",
       points: p0,
       curve: new THREE.CatmullRomCurve3(p0, true, "centripetal", 0.0),
     })
@@ -167,7 +167,7 @@ export function generateTrafficRoutes(
     routes.push({
       id: "route-counter-clockwise-outer",
       name: "Outer Counter-Clockwise (Outer Lane)",
-      color: "#06b6d4",
+      color: "#b96843",
       points: p1,
       curve: new THREE.CatmullRomCurve3(p1, true, "centripetal", 0.0),
     })
@@ -209,7 +209,7 @@ export function generateTrafficRoutes(
     routes.push({
       id: "route-north-south-artery",
       name: "North-South Boulevard (Two-Way)",
-      color: "#f59e0b",
+      color: "#d3a184",
       points: p2,
       curve: new THREE.CatmullRomCurve3(p2, true, "centripetal", 0.0),
     })
@@ -251,7 +251,7 @@ export function generateTrafficRoutes(
     routes.push({
       id: "route-east-west-artery",
       name: "East-West Boulevard (Two-Way)",
-      color: "#ec4899",
+      color: "#6c3c2a",
       points: p3,
       curve: new THREE.CatmullRomCurve3(p3, true, "centripetal", 0.0),
     })
@@ -271,7 +271,7 @@ export function generateTrafficRoutes(
     routes.push({
       id: "route-roundabout-loop",
       name: "Central Roundabout Cruise",
-      color: "#eab308",
+      color: "#c57950",
       points: p4,
       curve: new THREE.CatmullRomCurve3(p4, true, "centripetal", 0.0),
     })

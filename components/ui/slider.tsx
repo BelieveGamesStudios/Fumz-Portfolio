@@ -45,7 +45,7 @@ function Slider({
         <SliderPrimitive.Range
           data-slot="slider-range"
           className={
-            'bg-gradient-to-r from-slate-400 via-slate-200 to-slate-100 absolute data-[orientation=horizontal]:h-full data-[orientation=vertical]:w-full z-10'
+            'bg-gradient-to-r from-primary via-[#B96843] to-accent absolute data-[orientation=horizontal]:h-full data-[orientation=vertical]:w-full z-10'
           }
           style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.6), inset 0 -4px 10px rgba(0,0,0,0.08)' }}
         />
@@ -56,7 +56,7 @@ function Slider({
         <SliderPrimitive.Thumb
           data-slot="slider-thumb"
           key={index}
-          className="z-30 border-slate-400 ring-ring/50 block size-4 shrink-0 rounded-full border bg-gradient-to-br from-slate-100 to-slate-200 shadow-md transition-[color,box-shadow] hover:shadow-lg focus-visible:ring-4 focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-50"
+          className="z-30 border-accent/60 ring-ring/50 block size-4 shrink-0 rounded-full border bg-gradient-to-br from-accent to-primary shadow-md transition-[color,box-shadow] hover:shadow-lg focus-visible:ring-4 focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-50"
         />
       ))}
     </SliderPrimitive.Root>

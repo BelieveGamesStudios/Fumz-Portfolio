@@ -1,13 +1,13 @@
 # Supabase Map Editor Setup Guide
 
-To support importing `.glb` files and persisting your custom city buildings and traffic waypoints, run the following SQL commands in your **Supabase SQL Editor**:
+To support importing 3D model files (`.glb`, `.gltf`, `.fbx`, `.obj`) and persisting your custom city buildings and traffic waypoints, run the following SQL commands in your **Supabase SQL Editor**:
 
 ## 1. Run Migration Script
 
 You can copy and run the contents of [`scripts/009_create_map_editor.sql`](file:///home/believestudios/ProximaXR%20Projects/Fumz-Portfolio/scripts/009_create_map_editor.sql):
 
 ```sql
--- 1. Create storage bucket for city assets (GLB models, textures)
+-- 1. Create storage bucket for city assets (GLB, FBX, OBJ models, textures)
 insert into storage.buckets (id, name, public)
 values ('city-assets', 'city-assets', true)
 on conflict (id) do nothing;

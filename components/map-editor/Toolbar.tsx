@@ -48,11 +48,11 @@ interface ToolbarProps {
 }
 
 const ROUTES = [
-  { id: "route-clockwise-outer", name: "Outer Clockwise (Inner Lane)", color: "#22c55e" },
-  { id: "route-counter-clockwise-outer", name: "Outer Counter-Clockwise (Outer Lane)", color: "#06b6d4" },
-  { id: "route-north-south-artery", name: "North-South Boulevard (Two-Way)", color: "#f59e0b" },
-  { id: "route-east-west-artery", name: "East-West Boulevard (Two-Way)", color: "#ec4899" },
-  { id: "route-roundabout-loop", name: "Central Roundabout Cruise", color: "#eab308" },
+  { id: "route-clockwise-outer", name: "Outer Clockwise (Inner Lane)", color: "#87482d" },
+  { id: "route-counter-clockwise-outer", name: "Outer Counter-Clockwise (Outer Lane)", color: "#b96843" },
+  { id: "route-north-south-artery", name: "North-South Boulevard (Two-Way)", color: "#d3a184" },
+  { id: "route-east-west-artery", name: "East-West Boulevard (Two-Way)", color: "#6c3c2a" },
+  { id: "route-roundabout-loop", name: "Central Roundabout Cruise", color: "#c57950" },
 ]
 
 export function Toolbar({
@@ -203,7 +203,7 @@ export function Toolbar({
                 variant="outline"
                 className="h-7 text-xs px-2.5 gap-1 cursor-pointer border-slate-700 text-slate-300 hover:text-white"
               >
-                <RotateCcw className="w-3 h-3 text-sky-400" />
+                <RotateCcw className="w-3 h-3 text-accent" />
                 <span>Reset</span>
                 <ChevronDown className="w-3 h-3 opacity-60" />
               </Button>
@@ -213,7 +213,7 @@ export function Toolbar({
                 onClick={onResetActiveRoute}
                 className="text-xs cursor-pointer focus:bg-slate-800 focus:text-white"
               >
-                <RotateCcw className="w-3.5 h-3.5 mr-2 text-sky-400" />
+                <RotateCcw className="w-3.5 h-3.5 mr-2 text-accent" />
                 <span>Reset This Route Path</span>
               </DropdownMenuItem>
               <DropdownMenuItem

@@ -8,6 +8,13 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
   Copy,
   Trash2,
   MapPin,
@@ -20,8 +27,16 @@ import {
   Eye,
   EyeOff,
   Route as RouteIcon,
+  Sparkles,
+  ExternalLink,
 } from "lucide-react"
-import { PlacedBuilding, RouteWaypointMap } from "./types"
+import {
+  PlacedBuilding,
+  RouteWaypointMap,
+  BuildingModalType,
+  normalizeBuildingInteraction,
+  isValidSafeUrl,
+} from "./types"
 
 interface InspectorProps {
   editorMode: "buildings" | "waypoints"
@@ -31,6 +46,7 @@ interface InspectorProps {
   onUpdateBuilding: (updated: PlacedBuilding) => void
   onDuplicateBuilding: (id: string) => void
   onDeleteBuilding: (id: string) => void
+  onPreviewBuilding?: (building: PlacedBuilding) => void
   // Waypoint inspection
   waypoints: RouteWaypointMap
   disabledRoutes?: string[]
@@ -50,6 +66,7 @@ export function Inspector({
   onUpdateBuilding,
   onDuplicateBuilding,
   onDeleteBuilding,
+  onPreviewBuilding,
   waypoints,
   disabledRoutes = [],
   activeRouteId,
@@ -87,8 +104,17 @@ export function Inspector({
   const handleScaleChange = (axis: 0 | 1 | 2, val: number) => {
     if (!selectedBuilding) return
     const newScale = [...selectedBuilding.scale] as [number, number, number]
-    newScale[axis] = Math.max(0.1, isNaN(val) ? 1 : val)
+    newScale[axis] = isNaN(val) ? 0.001 : Math.max(0.0001, val)
     onUpdateBuilding({ ...selectedBuilding, scale: newScale })
+  }
+
+  const handleUniformScaleSet = (val: number) => {
+    if (!selectedBuilding) return
+    const safeVal = isNaN(val) ? 0.001 : Math.max(0.0001, val)
+    onUpdateBuilding({
+      ...selectedBuilding,
+      scale: [safeVal, safeVal, safeVal],
+    })
   }
 
   // Helpers for Waypoint inputs
@@ -139,6 +165,10 @@ export function Inspector({
     onSelectWaypoint(null)
   }
 
+  const interaction = selectedBuilding
+    ? normalizeBuildingInteraction(selectedBuilding)
+    : { type: "none" as BuildingModalType }
+
   return (
     <Card className="flex flex-col h-full bg-card/60 backdrop-blur-md border border-border p-4">
       <div className="flex items-center justify-between pb-3 border-b border-border mb-4">
@@ -169,12 +199,169 @@ export function Inspector({
                 <Badge variant="secondary" className="text-[10px]">
                   Type: {selectedBuilding.type.toUpperCase()}
                 </Badge>
-                {selectedBuilding.glb_url && (
-                  <span className="text-[10px] text-muted-foreground truncate max-w-[150px]">
-                    Custom GLB
-                  </span>
+                {(selectedBuilding.glb_url || selectedBuilding.model_url) && (
+                  <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4 font-mono uppercase text-accent border-primary/30 bg-primary/10">
+                    {selectedBuilding.model_format?.toUpperCase() ||
+                      (selectedBuilding.model_url || selectedBuilding.glb_url || "")
+                        .split("?")[0]
+                        .split(".")
+                        .pop()
+                        ?.toUpperCase() || "MODEL"}
+                  </Badge>
                 )}
               </div>
+            </div>
+
+            {/* Optional Billboard/Badge Label */}
+            <div>
+              <Label className="text-xs text-muted-foreground mb-1 block">3D Floating Badge Label</Label>
+              <Input
+                placeholder="e.g. PROJECTS, ABOUT, SOCIALS"
+                value={selectedBuilding.label || ""}
+                onChange={(e) =>
+                  onUpdateBuilding({ ...selectedBuilding, label: e.target.value })
+                }
+                className="h-8 text-xs uppercase font-mono"
+              />
+            </div>
+
+            <Separator />
+
+            {/* Modal & Interaction Section */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                  <Sparkles className="w-3 h-3 text-amber-400" />
+                  Modal & Interaction
+                </Label>
+                {interaction.type !== "none" && onPreviewBuilding && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 px-2 text-[10px] gap-1 text-accent hover:text-[#E1C1AF] hover:bg-primary/10 cursor-pointer"
+                    onClick={() => onPreviewBuilding(selectedBuilding)}
+                  >
+                    <Eye className="w-3 h-3" />
+                    <span>Preview Modal</span>
+                  </Button>
+                )}
+              </div>
+
+              <div>
+                <span className="text-[10px] text-muted-foreground block mb-1">Click Action / Modal Target</span>
+                <Select
+                  value={interaction.type}
+                  onValueChange={(val: BuildingModalType) => {
+                    onUpdateBuilding({
+                      ...selectedBuilding,
+                      interaction: {
+                        ...interaction,
+                        type: val,
+                      },
+                    })
+                  }}
+                >
+                  <SelectTrigger className="h-8 text-xs bg-slate-900/70 border-border">
+                    <SelectValue placeholder="Select Action..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None (Non-Interactive)</SelectItem>
+                    <SelectItem value="projects">Projects Section</SelectItem>
+                    <SelectItem value="about">About Section</SelectItem>
+                    <SelectItem value="experience">Experience Section</SelectItem>
+                    <SelectItem value="skills">Skills Spire</SelectItem>
+                    <SelectItem value="certifications">Certifications Section</SelectItem>
+                    <SelectItem value="contact">Contact Section</SelectItem>
+                    <SelectItem value="custom">Custom Content & URL</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Custom modal fields if type === 'custom' */}
+              {interaction.type === "custom" && (
+                <div className="space-y-2.5 p-2.5 rounded-lg bg-slate-900/60 border border-slate-800 animate-in fade-in duration-150">
+                  <div>
+                    <span className="text-[10px] text-muted-foreground block mb-0.5">Custom Modal Title</span>
+                    <Input
+                      placeholder={selectedBuilding.name}
+                      value={interaction.customTitle || ""}
+                      onChange={(e) => {
+                        onUpdateBuilding({
+                          ...selectedBuilding,
+                          interaction: { ...interaction, customTitle: e.target.value },
+                        })
+                      }}
+                      className="h-7 text-xs"
+                    />
+                  </div>
+
+                  <div>
+                    <span className="text-[10px] text-muted-foreground block mb-0.5">Custom Subtitle</span>
+                    <Input
+                      placeholder="e.g. Featured Technology Showcase"
+                      value={interaction.customSubtitle || ""}
+                      onChange={(e) => {
+                        onUpdateBuilding({
+                          ...selectedBuilding,
+                          interaction: { ...interaction, customSubtitle: e.target.value },
+                        })
+                      }}
+                      className="h-7 text-xs"
+                    />
+                  </div>
+
+                  <div>
+                    <span className="text-[10px] text-muted-foreground block mb-0.5">Markdown Content</span>
+                    <textarea
+                      placeholder="Describe this project, feature, or location... (Supports **bold**, *italic*, bullet lists)"
+                      value={interaction.customContent || ""}
+                      onChange={(e) => {
+                        onUpdateBuilding({
+                          ...selectedBuilding,
+                          interaction: { ...interaction, customContent: e.target.value },
+                        })
+                      }}
+                      rows={3}
+                      className="w-full text-xs p-2 rounded-md bg-slate-950 border border-border text-slate-200 placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                    />
+                  </div>
+
+                  <div>
+                    <span className="text-[10px] text-muted-foreground block mb-0.5">Action Link URL</span>
+                    <Input
+                      placeholder="https://example.com or mailto:..."
+                      value={interaction.customLink || ""}
+                      onChange={(e) => {
+                        onUpdateBuilding({
+                          ...selectedBuilding,
+                          interaction: { ...interaction, customLink: e.target.value },
+                        })
+                      }}
+                      className="h-7 text-xs font-mono"
+                    />
+                    {interaction.customLink && !isValidSafeUrl(interaction.customLink) && (
+                      <p className="text-[10px] text-amber-400 mt-0.5">
+                        ⚠️ Only https:, http:, or mailto: links are allowed.
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <span className="text-[10px] text-muted-foreground block mb-0.5">Link Button Label</span>
+                    <Input
+                      placeholder="e.g. Open Live Demo"
+                      value={interaction.customLinkLabel || ""}
+                      onChange={(e) => {
+                        onUpdateBuilding({
+                          ...selectedBuilding,
+                          interaction: { ...interaction, customLinkLabel: e.target.value },
+                        })
+                      }}
+                      className="h-7 text-xs"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
 
             <Separator />
@@ -261,39 +448,80 @@ export function Inspector({
 
             {/* Scale */}
             <div>
-              <Label className="text-xs font-semibold text-muted-foreground mb-2 flex items-center gap-1.5">
-                <Maximize2 className="w-3 h-3 text-blue-400" />
-                Scale
-              </Label>
+              <div className="flex items-center justify-between mb-2">
+                <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                  <Maximize2 className="w-3 h-3 text-blue-400" />
+                  Scale
+                </Label>
+                {/* Quick scale presets for imported 3D models */}
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    title="Set uniform scale to 0.001"
+                    onClick={() => handleUniformScaleSet(0.001)}
+                    className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/20 transition-colors cursor-pointer"
+                  >
+                    0.001x
+                  </button>
+                  <button
+                    type="button"
+                    title="Set uniform scale to 0.01"
+                    onClick={() => handleUniformScaleSet(0.01)}
+                    className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/20 transition-colors cursor-pointer"
+                  >
+                    0.01x
+                  </button>
+                  <button
+                    type="button"
+                    title="Set uniform scale to 0.1"
+                    onClick={() => handleUniformScaleSet(0.1)}
+                    className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/20 transition-colors cursor-pointer"
+                  >
+                    0.1x
+                  </button>
+                  <button
+                    type="button"
+                    title="Set uniform scale to 1.0"
+                    onClick={() => handleUniformScaleSet(1.0)}
+                    className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/20 transition-colors cursor-pointer"
+                  >
+                    1.0x
+                  </button>
+                </div>
+              </div>
+
               <div className="grid grid-cols-3 gap-2">
                 <div>
                   <span className="text-[10px] text-muted-foreground block mb-0.5">Scale X</span>
                   <Input
                     type="number"
-                    step="0.2"
+                    step="any"
+                    min="0.0001"
                     value={selectedBuilding.scale[0]}
                     onChange={(e) => handleScaleChange(0, parseFloat(e.target.value))}
-                    className="h-7 text-xs px-2"
+                    className="h-7 text-xs px-2 font-mono"
                   />
                 </div>
                 <div>
                   <span className="text-[10px] text-muted-foreground block mb-0.5">Scale Y</span>
                   <Input
                     type="number"
-                    step="0.2"
+                    step="any"
+                    min="0.0001"
                     value={selectedBuilding.scale[1]}
                     onChange={(e) => handleScaleChange(1, parseFloat(e.target.value))}
-                    className="h-7 text-xs px-2"
+                    className="h-7 text-xs px-2 font-mono"
                   />
                 </div>
                 <div>
                   <span className="text-[10px] text-muted-foreground block mb-0.5">Scale Z</span>
                   <Input
                     type="number"
-                    step="0.2"
+                    step="any"
+                    min="0.0001"
                     value={selectedBuilding.scale[2]}
                     onChange={(e) => handleScaleChange(2, parseFloat(e.target.value))}
-                    className="h-7 text-xs px-2"
+                    className="h-7 text-xs px-2 font-mono"
                   />
                 </div>
               </div>
@@ -306,7 +534,7 @@ export function Inspector({
               <Button
                 variant="outline"
                 size="sm"
-                className="flex-1 h-8 text-xs gap-1.5"
+                className="flex-1 h-8 text-xs gap-1.5 cursor-pointer"
                 onClick={() => onDuplicateBuilding(selectedBuilding.id)}
               >
                 <Copy className="w-3.5 h-3.5" />
@@ -315,7 +543,7 @@ export function Inspector({
               <Button
                 variant="destructive"
                 size="sm"
-                className="h-8 text-xs gap-1.5"
+                className="h-8 text-xs gap-1.5 cursor-pointer"
                 onClick={() => onDeleteBuilding(selectedBuilding.id)}
               >
                 <Trash2 className="w-3.5 h-3.5" />
@@ -329,7 +557,7 @@ export function Inspector({
             <div>
               <p className="text-xs font-medium text-foreground">No Building Selected</p>
               <p className="text-[11px] text-muted-foreground mt-1 max-w-[200px]">
-                Click any building in the 3D viewport or select one from the hierarchy list on the left to transform it.
+                Click any building in the 3D viewport or select one from the hierarchy list on the left to transform it or configure its modal.
               </p>
             </div>
           </div>
@@ -341,7 +569,7 @@ export function Inspector({
           <div className="p-2.5 rounded-lg bg-slate-900/60 border border-slate-800 space-y-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5">
-                <RouteIcon className="w-3.5 h-3.5 text-sky-400" />
+                <RouteIcon className="w-3.5 h-3.5 text-accent" />
                 <span className="text-xs font-semibold text-slate-200 uppercase font-mono">
                   {activeRouteId.replace("route-", "").replace(/-/g, " ")}
                 </span>
@@ -359,7 +587,7 @@ export function Inspector({
               <Button
                 variant={isRouteDisabled ? "default" : "outline"}
                 size="sm"
-                className={`w-full h-8 text-xs gap-1.5 justify-center font-medium ${
+                className={`w-full h-8 text-xs gap-1.5 justify-center font-medium cursor-pointer ${
                   isRouteDisabled
                     ? "bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm"
                     : "border-amber-500/40 text-amber-300 hover:bg-amber-500/10"
@@ -423,7 +651,7 @@ export function Inspector({
                 <Button
                   variant="outline"
                   size="sm"
-                  className="flex-1 h-7 text-xs gap-1 justify-center"
+                  className="flex-1 h-7 text-xs gap-1 justify-center cursor-pointer"
                   onClick={handleInsertWaypointAfter}
                 >
                   <PlusCircle className="w-3 h-3 text-emerald-400" />
@@ -433,7 +661,7 @@ export function Inspector({
                 <Button
                   variant="destructive"
                   size="sm"
-                  className="h-7 text-xs gap-1 justify-center px-2.5"
+                  className="h-7 text-xs gap-1 justify-center px-2.5 cursor-pointer"
                   onClick={handleDeleteWaypoint}
                 >
                   <Trash2 className="w-3 h-3" />
@@ -454,10 +682,10 @@ export function Inspector({
             <Button
               variant="outline"
               size="sm"
-              className="w-full h-7 text-xs gap-1.5 justify-center"
+              className="w-full h-7 text-xs gap-1.5 justify-center cursor-pointer"
               onClick={() => onResetRoute(activeRouteId)}
             >
-              <RotateCcw className="w-3 h-3 text-sky-400" />
+              <RotateCcw className="w-3 h-3 text-accent" />
               <span>Reset This Route Path</span>
             </Button>
 
@@ -465,7 +693,7 @@ export function Inspector({
               <Button
                 variant="ghost"
                 size="sm"
-                className="w-full h-7 text-xs gap-1.5 justify-center text-amber-400 hover:text-amber-300"
+                className="w-full h-7 text-xs gap-1.5 justify-center text-amber-400 hover:text-amber-300 cursor-pointer"
                 onClick={onResetAllRoutes}
               >
                 <RotateCcw className="w-3 h-3 text-amber-400" />

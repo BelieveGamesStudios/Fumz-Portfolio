@@ -27,7 +27,7 @@ export function AdminDashboard() {
           </div>
           <div className="flex items-center gap-3">
             <Link href="/admin/map">
-              <Button className="gap-2 bg-cyan-600 hover:bg-cyan-500 text-white cursor-pointer shadow-md">
+              <Button className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground cursor-pointer shadow-md">
                 <Map className="w-4 h-4" />
                 Open 3D Map Editor
               </Button>
@@ -81,15 +81,15 @@ export function AdminDashboard() {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                   <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                    <Map className="w-5 h-5 text-cyan-400" />
+                    <Map className="w-5 h-5 text-accent" />
                     City 3D Map & Traffic Editor
                   </h3>
                   <p className="text-sm text-muted-foreground mt-1 max-w-xl">
-                    Import custom .glb building models, drag & drop transforms in 3D, and customize road traffic waypoints with live vehicle test drive.
+                    Import custom 3D building models (.glb, .fbx, .obj), drag & drop transforms in 3D, and customize road traffic waypoints with live vehicle test drive.
                   </p>
                 </div>
                 <Link href="/admin/map">
-                  <Button className="bg-cyan-600 hover:bg-cyan-500 text-white gap-2 shadow-lg cursor-pointer">
+                  <Button className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2 shadow-lg cursor-pointer">
                     <Maximize2 className="w-4 h-4" />
                     <span>Launch Full View Editor (/admin/map)</span>
                   </Button>

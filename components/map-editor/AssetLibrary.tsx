@@ -69,12 +69,16 @@ export function AssetLibrary({
     }
   }
 
-  const handleSpawnGlb = (asset: MapAsset) => {
+  const handleSpawnModel = (asset: MapAsset) => {
+    const ext = (asset.format || asset.file_url.split("?")[0].split(".").pop() || "glb").toLowerCase()
+    const format = (ext === "fbx" || ext === "obj" || ext === "gltf" || ext === "glb") ? ext : "glb"
     const newBuilding: PlacedBuilding = {
-      id: `glb-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      id: `model-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
       name: asset.name,
       type: "glb",
       glb_url: asset.file_url,
+      model_url: asset.file_url,
+      model_format: format,
       position: [0, 0, 0],
       rotation: [0, 0, 0],
       scale: [1, 1, 1],
@@ -131,19 +135,19 @@ export function AssetLibrary({
 
       {activeTab === "library" ? (
         <div className="flex flex-col flex-1 min-h-0 space-y-4">
-          {/* Upload .glb Button */}
+          {/* Upload 3D Model Button */}
           <div className="border-2 border-dashed border-border/80 hover:border-primary/50 transition-colors rounded-xl p-4 text-center bg-muted/20">
             <input
               type="file"
               ref={fileInputRef}
               onChange={handleFileUpload}
-              accept=".glb,.gltf"
+              accept=".glb,.gltf,.fbx,.obj"
               className="hidden"
             />
             <Upload className="w-6 h-6 mx-auto mb-1.5 text-muted-foreground" />
-            <p className="text-xs font-medium mb-1">Import 3D Building (.glb)</p>
+            <p className="text-xs font-medium mb-1">Import 3D Model (.glb, .fbx, .obj)</p>
             <p className="text-[11px] text-muted-foreground mb-3">
-              Uploads to Supabase Storage
+              Supports GLB, GLTF, FBX & Wavefront OBJ
             </p>
             <Button
               size="sm"
@@ -152,7 +156,7 @@ export function AssetLibrary({
               disabled={isUploading}
               className="h-8 text-xs w-full"
             >
-              {isUploading ? "Uploading..." : "Select .glb File"}
+              {isUploading ? "Uploading..." : "Select 3D Model File"}
             </Button>
 
             {uploadError && (
@@ -172,10 +176,10 @@ export function AssetLibrary({
                 size="sm"
                 className="h-8 text-xs justify-start px-2 bg-muted/40 hover:bg-muted"
                 onClick={() =>
-                  handleSpawnPreset("portfolio", "Custom Portfolio Tower", "#38bdf8", [6, 14, 6])
+                  handleSpawnPreset("portfolio", "Custom Portfolio Tower", "#a85c3a", [6, 14, 6])
                 }
               >
-                <div className="w-2.5 h-2.5 rounded-full bg-[#38bdf8] mr-1.5 flex-shrink-0" />
+                <div className="w-2.5 h-2.5 rounded-full bg-[#a85c3a] mr-1.5 flex-shrink-0" />
                 <span className="truncate">Portfolio Tower</span>
               </Button>
 
@@ -184,10 +188,10 @@ export function AssetLibrary({
                 size="sm"
                 className="h-8 text-xs justify-start px-2 bg-muted/40 hover:bg-muted"
                 onClick={() =>
-                  handleSpawnPreset("decorative", "Skyline Skyscraper", "#64748b", [5, 20, 5])
+                  handleSpawnPreset("decorative", "Skyline Skyscraper", "#76645b", [5, 20, 5])
                 }
               >
-                <div className="w-2.5 h-2.5 rounded-full bg-[#64748b] mr-1.5 flex-shrink-0" />
+                <div className="w-2.5 h-2.5 rounded-full bg-[#76645b] mr-1.5 flex-shrink-0" />
                 <span className="truncate">Skyscraper</span>
               </Button>
 
@@ -196,10 +200,10 @@ export function AssetLibrary({
                 size="sm"
                 className="h-8 text-xs justify-start px-2 bg-muted/40 hover:bg-muted"
                 onClick={() =>
-                  handleSpawnPreset("decorative", "Commercial Block", "#475569", [8, 8, 8])
+                  handleSpawnPreset("decorative", "Commercial Block", "#5f5049", [8, 8, 8])
                 }
               >
-                <div className="w-2.5 h-2.5 rounded-full bg-[#475569] mr-1.5 flex-shrink-0" />
+                <div className="w-2.5 h-2.5 rounded-full bg-[#5f5049] mr-1.5 flex-shrink-0" />
                 <span className="truncate">Low Block</span>
               </Button>
 
@@ -208,21 +212,21 @@ export function AssetLibrary({
                 size="sm"
                 className="h-8 text-xs justify-start px-2 bg-muted/40 hover:bg-muted"
                 onClick={() =>
-                  handleSpawnPreset("portfolio", "Lab Pavilion", "#ec4899", [7, 6, 7])
+                  handleSpawnPreset("portfolio", "Lab Pavilion", "#c57950", [7, 6, 7])
                 }
               >
-                <div className="w-2.5 h-2.5 rounded-full bg-[#ec4899] mr-1.5 flex-shrink-0" />
+                <div className="w-2.5 h-2.5 rounded-full bg-[#c57950] mr-1.5 flex-shrink-0" />
                 <span className="truncate">Pavilion</span>
               </Button>
             </div>
           </div>
 
-          {/* Uploaded GLB Models List */}
+          {/* Uploaded 3D Models List */}
           <div className="flex-1 min-h-0 flex flex-col">
             <div className="flex items-center justify-between mb-2">
               <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                <Building2 className="w-3 h-3 text-cyan-400" />
-                Uploaded GLB Models ({assets.length})
+                <Building2 className="w-3 h-3 text-accent" />
+                Uploaded 3D Models ({assets.length})
               </h4>
             </div>
 
@@ -242,46 +246,73 @@ export function AssetLibrary({
               {filteredAssets.length === 0 ? (
                 <div className="text-center py-6 text-xs text-muted-foreground">
                   {assets.length === 0
-                    ? "No custom .glb models uploaded yet. Upload one above!"
+                    ? "No custom 3D models uploaded yet. Upload .glb, .fbx, or .obj above!"
                     : "No matching models."}
                 </div>
               ) : (
-                <div className="space-y-2">
-                  {filteredAssets.map((asset) => (
-                    <div
-                      key={asset.id}
-                      className="p-2.5 rounded-lg border border-border/80 bg-background/50 hover:bg-muted/40 transition-colors flex items-center justify-between gap-2"
-                    >
-                      <div className="min-w-0 flex-1">
-                        <p className="text-xs font-medium truncate">{asset.name}</p>
-                        <p className="text-[10px] text-muted-foreground">
-                          {asset.file_size
-                            ? `${(asset.file_size / (1024 * 1024)).toFixed(1)} MB`
-                            : "GLB Model"}
-                        </p>
-                      </div>
+                <div className="space-y-2.5">
+                  {filteredAssets.map((asset) => {
+                    const ext = (asset.format || asset.file_url.split("?")[0].split(".").pop() || "glb").toUpperCase()
+                    const formatBadgeColor =
+                      ext === "FBX"
+                        ? "text-amber-400 border-amber-500/30 bg-amber-500/10"
+                        : ext === "OBJ"
+                        ? "text-emerald-400 border-emerald-500/30 bg-emerald-500/10"
+                        : "text-accent border-primary/30 bg-primary/10"
 
-                      <div className="flex items-center gap-1 flex-shrink-0">
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          className="h-7 text-xs px-2 gap-1"
-                          onClick={() => handleSpawnGlb(asset)}
-                        >
-                          <Plus className="w-3 h-3" />
-                          <span>Add</span>
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive"
-                          onClick={() => onDeleteAsset(asset.id)}
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </Button>
+                    return (
+                      <div
+                        key={asset.id}
+                        className="p-3 rounded-xl border border-border/80 bg-background/60 hover:bg-muted/40 transition-colors flex flex-col gap-2"
+                      >
+                        {/* Row 1: Model Name & Format Badge */}
+                        <div className="flex items-center justify-between gap-2 min-w-0">
+                          <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                            <Box className="w-3.5 h-3.5 text-accent shrink-0" />
+                            <p className="text-xs font-semibold truncate text-foreground" title={asset.name}>
+                              {asset.name}
+                            </p>
+                          </div>
+                          <Badge variant="outline" className={`text-[9px] px-1.5 py-0 h-4 font-mono shrink-0 font-semibold ${formatBadgeColor}`}>
+                            {ext}
+                          </Badge>
+                        </div>
+
+                        {/* Row 2: File Size & Action Buttons */}
+                        <div className="flex items-center justify-between pt-1 border-t border-border/40">
+                          <span className="text-[11px] text-muted-foreground font-mono">
+                            {asset.file_size
+                              ? `${(asset.file_size / (1024 * 1024)).toFixed(1)} MB`
+                              : `${ext} Model`}
+                          </span>
+
+                          <div className="flex items-center gap-1.5">
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              className="h-7 text-xs px-2.5 gap-1 shadow-sm hover:bg-primary/20 hover:text-primary cursor-pointer font-medium"
+                              onClick={() => handleSpawnModel(asset)}
+                              title="Add building into 3D scene"
+                            >
+                              <Plus className="w-3.5 h-3.5" />
+                              <span>Add to Map</span>
+                            </Button>
+
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-7 w-7 p-0 text-muted-foreground hover:text-red-400 hover:bg-red-500/10 cursor-pointer"
+                              onClick={() => onDeleteAsset(asset.id)}
+                              title="Delete uploaded model"
+                              aria-label="Delete uploaded model"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </Button>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               )}
             </ScrollArea>
@@ -298,35 +329,37 @@ export function AssetLibrary({
                   <div
                     key={b.id}
                     onClick={() => onSelectBuilding(b.id)}
-                    className={`p-2 rounded-lg border text-xs cursor-pointer flex items-center justify-between transition-all ${
+                    className={`p-2.5 rounded-lg border text-xs cursor-pointer flex items-center justify-between gap-2 transition-all ${
                       isSelected
-                        ? "bg-primary/10 border-primary text-primary font-medium"
+                        ? "bg-primary/10 border-primary text-primary font-medium shadow-sm"
                         : "bg-background/40 border-border/60 hover:bg-muted/50 text-foreground"
                     }`}
                   >
-                    <div className="flex items-center gap-2 min-w-0">
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
                       <div
-                        className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                        className="w-2.5 h-2.5 rounded-full shrink-0 shadow-sm"
                         style={{
                           backgroundColor:
-                            b.color || (b.type === "glb" ? "#06b6d4" : "#64748b"),
+                            b.color || (b.type === "glb" ? "#b96843" : "#76645b"),
                         }}
                       />
-                      <span className="truncate">{b.name}</span>
+                      <span className="truncate flex-1 min-w-0 font-medium" title={b.name}>{b.name}</span>
                     </div>
 
-                    <div className="flex items-center gap-1 flex-shrink-0">
-                      <Badge variant="outline" className="text-[10px] px-1 py-0 h-4">
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 shrink-0 font-mono">
                         {b.type.toUpperCase()}
                       </Badge>
                       <Button
                         size="sm"
                         variant="ghost"
-                        className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
+                        className="h-6 w-6 p-0 shrink-0 text-muted-foreground hover:text-red-400 hover:bg-red-500/10 cursor-pointer"
                         onClick={(e) => {
                           e.stopPropagation()
                           onDeleteBuilding(b.id)
                         }}
+                        title="Delete building from scene"
+                        aria-label="Delete building from scene"
                       >
                         <Trash2 className="w-3 h-3" />
                       </Button>

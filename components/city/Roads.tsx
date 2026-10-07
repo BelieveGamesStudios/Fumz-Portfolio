@@ -7,9 +7,9 @@ import * as THREE from "three"
 const ROAD_WIDTH = 5.6
 const HALF_ROAD = ROAD_WIDTH / 2
 const SIDEWALK_WIDTH = 1.0
-const ASPHALT_COLOR = "#2f3742"
-const SIDEWALK_COLOR = "#d5dbe2"
-const LINE_COLOR = "#ffffff"
+const ASPHALT_COLOR = "#242120"
+const SIDEWALK_COLOR = "#c9b3a5"
+const LINE_COLOR = "#eee2db"
 
 // Roundabout
 const ROUNDABOUT_INNER_RADIUS = 4.2
@@ -407,7 +407,7 @@ function CentralRoundabout() {
       <mesh position={[0, 0.05, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <circleGeometry args={[ROUNDABOUT_INNER_RADIUS, 48]} />
         <meshStandardMaterial
-          color="#529e2e"
+          color="#706b45"
           roughness={0.9}
           side={THREE.DoubleSide}
         />
@@ -456,11 +456,11 @@ function MiniTree({
     <group position={position} scale={scale}>
       <mesh position={[0, 0.5, 0]} castShadow>
         <cylinderGeometry args={[0.15, 0.22, 1, 8]} />
-        <meshStandardMaterial color="#8b5a2b" roughness={0.9} />
+        <meshStandardMaterial color="#5a3828" roughness={0.9} />
       </mesh>
       <mesh position={[0, 1.35, 0]} castShadow>
         <sphereGeometry args={[0.7, 8, 8]} />
-        <meshStandardMaterial color="#449922" roughness={0.8} flatShading />
+        <meshStandardMaterial color="#77734b" roughness={0.8} flatShading />
       </mesh>
     </group>
   )

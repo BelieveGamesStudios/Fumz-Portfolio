@@ -1,6 +1,6 @@
 import { createClient } from './client'
 import { addMapAsset } from '@/app/actions/mapEditor'
-import { MapAsset } from '@/components/map-editor/types'
+import { MapAsset, ModelFormat } from '@/components/map-editor/types'
 
 export async function uploadGlbAsset(
   file: File,
@@ -8,10 +8,11 @@ export async function uploadGlbAsset(
 ): Promise<{ success: boolean; asset?: MapAsset; error?: string }> {
   try {
     const ext = file.name.split('.').pop()?.toLowerCase()
-    if (ext !== 'glb' && ext !== 'gltf') {
-      return { success: false, error: 'Only .glb and .gltf files are supported.' }
+    if (ext !== 'glb' && ext !== 'gltf' && ext !== 'fbx' && ext !== 'obj') {
+      return { success: false, error: 'Only .glb, .gltf, .fbx, and .obj 3D model files are supported.' }
     }
 
+    const format: ModelFormat = (ext === 'fbx' || ext === 'obj' || ext === 'gltf' || ext === 'glb') ? ext : 'glb'
     const supabase = createClient()
     const cleanName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_')
     const filePath = `models/${Date.now()}_${cleanName}`
@@ -51,14 +52,24 @@ export async function uploadGlbAsset(
         name: file.name.replace(/\.[^/.]+$/, ''),
         file_url: publicUrl,
         file_size: file.size,
+        format,
         created_at: new Date().toISOString(),
       }
       return { success: true, asset: fallbackAsset }
     }
 
-    return { success: true, asset: result.asset }
+    return {
+      success: true,
+      asset: {
+        ...result.asset,
+        format,
+      },
+    }
   } catch (err: any) {
-    console.error('Error during GLB upload:', err)
+    console.error('Error during 3D model upload:', err)
     return { success: false, error: err.message || 'Upload failed' }
   }
 }
+
+export const uploadModelAsset = uploadGlbAsset
+

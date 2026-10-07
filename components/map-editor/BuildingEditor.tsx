@@ -89,9 +89,9 @@ export function BuildingEditor({
           Number(obj.rotation.z.toFixed(3)),
         ] as [number, number, number],
         scale: [
-          Number(Math.max(0.2, obj.scale.x).toFixed(2)),
-          Number(Math.max(0.2, obj.scale.y).toFixed(2)),
-          Number(Math.max(0.2, obj.scale.z).toFixed(2)),
+          Number(Math.max(0.0001, obj.scale.x).toFixed(4)),
+          Number(Math.max(0.0001, obj.scale.y).toFixed(4)),
+          Number(Math.max(0.0001, obj.scale.z).toFixed(4)),
         ] as [number, number, number],
       }
     })

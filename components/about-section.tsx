@@ -88,7 +88,7 @@ import { getPublicAboutSection, getPublicSkills } from "@/app/actions/public"
 
 // ... (existing imports)
 
-export function AboutSection() {
+export function AboutSection({ isModal = false }: { isModal?: boolean } = {}) {
   const skillsRef = useRef<HTMLDivElement>(null)
   const [skillsData, setSkillsData] = useState<SkillCategory[]>(DEFAULT_SKILLS)
   const [aboutContent, setAboutContent] = useState<{ title: string; content: string; image_url?: string } | null>(null)
@@ -170,63 +170,66 @@ export function AboutSection() {
     <>
       <section
         id="about"
-        className="relative w-full py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-background via-background/95 to-background"
+        className={
+          isModal
+            ? "relative w-full py-2 px-1"
+            : "relative w-full py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-background via-background/95 to-background"
+        }
       >
-        <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        <div className={isModal ? "w-full" : "max-w-6xl mx-auto"}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-10 items-center">
             {/* Left content */}
-            <div className="space-y-6" data-scroll-animate data-animation="slide-left">
-              <div className="space-y-2">
-                <h2 className="text-4xl sm:text-5xl font-bold">{aboutContent?.title || 'About Me'}</h2>
-                <div className="w-20 h-1 bg-gradient-to-r from-primary to-accent rounded-full" />
-              </div>
+            <div className="space-y-5">
+              {!isModal && (
+                <div className="space-y-2">
+                  <h2 className="text-4xl sm:text-5xl font-bold">
+                    {aboutContent?.title || 'About Me'}
+                  </h2>
+                  <div className="w-20 h-1 bg-gradient-to-r from-primary to-accent rounded-full" />
+                </div>
+              )}
 
               {aboutContent?.content ? (
-                <div className="prose prose-invert max-w-none text-lg text-muted-foreground leading-relaxed">
+                <div className="prose prose-invert max-w-none text-base sm:text-lg text-muted-foreground leading-relaxed">
                   <div dangerouslySetInnerHTML={{ __html: aboutContent.content }} />
                 </div>
               ) : (
-                <>
-                  <p className="text-lg text-muted-foreground leading-relaxed">
+                <div className="space-y-4 text-sm sm:text-base text-muted-foreground leading-relaxed">
+                  <p>
                     I'm a passionate Unity and XR developer with a deep commitment to creating immersive, interactive
                     experiences that push the boundaries of technology. My work spans game development, virtual reality,
                     augmented reality, and mixed reality applications.
                   </p>
-                  <p className="text-lg text-muted-foreground leading-relaxed">
+                  <p>
                     With years of experience building high-performance applications across multiple platforms, I specialize
-                    in optimizing complex systems and bringing creative visions to life through code. I'm particularly drawn
-                    to projects that combine technical excellence with innovative design.
+                    in optimizing complex systems and bringing creative visions to life through code.
                   </p>
-                  <p className="text-lg text-muted-foreground leading-relaxed">
-                    Whether it's architecting scalable multiplayer systems, implementing advanced visual effects, or
-                    designing intuitive spatial interfaces, I'm always looking to solve challenging problems and create
-                    experiences that resonate with users.
-                  </p>
-                </>
+                </div>
               )}
 
-              <div className="flex flex-col sm:flex-row gap-4 pt-4">
+              <div className="flex flex-wrap gap-3 pt-2">
                 <a
                   href="#contact"
-                  className="px-6 py-3 bg-primary text-primary-foreground rounded-xl font-medium hover:bg-primary/90 transition-colors text-center glow-effect"
+                  className="px-5 py-2.5 bg-primary text-primary-foreground rounded-xl font-medium text-sm hover:bg-primary/90 transition-colors text-center glow-effect shadow-md"
                 >
                   Get In Touch
                 </a>
                 <a
                   href="/resume.pdf"
                   download="resume.pdf"
-                  className="px-6 py-3 glass rounded-xl font-medium hover:bg-secondary/50 transition-colors text-center"
+                  className="px-5 py-2.5 glass rounded-xl font-medium text-sm hover:bg-secondary/50 transition-colors text-center"
                 >
                   Download Resume
                 </a>
               </div>
             </div>
 
-            <div className="relative h-96 w-full flex items-center justify-center" data-scroll-animate data-animation="slide-right">
+            {/* Right visual / portrait */}
+            <div className="relative h-64 sm:h-80 md:h-96 w-full flex items-center justify-center">
               {aboutContent?.image_url ? (
-                <div className="relative w-full h-full max-w-md mx-auto aspect-square">
+                <div className="relative w-full h-full max-w-sm mx-auto aspect-square">
                   <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/20 rounded-3xl blur-2xl transform -rotate-6 scale-95" />
-                  <div className="relative h-full w-full glass rounded-3xl overflow-hidden shadow-2xl reveal-card reveal-border">
+                  <div className="relative h-full w-full glass rounded-3xl overflow-hidden shadow-2xl border border-border/60">
                     <img
                       src={aboutContent.image_url}
                       alt={aboutContent.title || "About Me"}
@@ -235,104 +238,71 @@ export function AboutSection() {
                   </div>
                 </div>
               ) : (
-                <>
-                  <div className="absolute inset-0 glass rounded-3xl" />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-64 h-64 border border-primary/20 rounded-3xl rotate-45 absolute" data-parallax="0.04" />
-                    <div
-                      className="w-48 h-48 border border-accent/20 rounded-3xl rotate-12 absolute"
-                      style={{ animationDelay: "0.5s" }}
-                      data-parallax="-0.03"
-                    />
-                    <div
-                      className="w-32 h-32 bg-gradient-to-br from-primary/30 to-accent/30 rounded-3xl glow-effect"
-                      style={{ animationDelay: "1s" }}
-                      data-parallax="0.06"
-                    />
-                  </div>
-                </>
+                <div className="relative w-full h-full max-w-sm aspect-square flex items-center justify-center">
+                  <div className="absolute inset-0 glass rounded-3xl border border-border/50 shadow-xl" />
+                  <div className="w-48 h-48 border border-primary/20 rounded-3xl rotate-45 absolute" />
+                  <div className="w-36 h-36 border border-accent/20 rounded-3xl rotate-12 absolute" />
+                  <div className="w-24 h-24 bg-gradient-to-br from-primary/30 to-accent/30 rounded-2xl glow-effect" />
+                </div>
               )}
             </div>
           </div>
         </div>
       </section>
 
-      {/* Skills Section */}
-      <section id="skills" className="relative w-full py-24 px-4 sm:px-6 lg:px-8 bg-background">
-        <div className="max-w-6xl mx-auto">
-          {/* Header */}
-          <div className="space-y-4 mb-16 text-center">
-            <h2 className="text-4xl sm:text-5xl font-bold">Technical Skills</h2>
-            <div className="flex justify-center mt-3">
-              <div className="fluoro-underline" aria-hidden="true" />
+      {/* Skills Section - only shown on full landing page, not inside modal */}
+      {!isModal && (
+        <section id="skills" className="relative w-full py-24 px-4 sm:px-6 lg:px-8 bg-background">
+          <div className="max-w-6xl mx-auto">
+            {/* Header */}
+            <div className="space-y-4 mb-16 text-center">
+              <h2 className="text-4xl sm:text-5xl font-bold">Technical Skills</h2>
+              <div className="flex justify-center mt-3">
+                <div className="fluoro-underline" aria-hidden="true" />
+              </div>
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto mt-4">
+                A comprehensive toolkit built through hands-on experience across multiple platforms and technologies
+              </p>
             </div>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto mt-4">
-              A comprehensive toolkit built through hands-on experience across multiple platforms and technologies
-            </p>
-          </div>
 
-          {/* Skills Grid */}
-          <div ref={skillsRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {skillsData.map((category) => (
-              <div
-                key={category.name}
-                className="p-6 glass rounded-2xl transition-all duration-300 reveal-card reveal-border"
-                data-scroll-animate
-                data-animation="slide-up"
-              >
-                <h3 className="text-lg font-bold mb-4 text-primary transition-colors">
-                  {category.name}
-                </h3>
-                <div className="space-y-4">
-                  {category.skills.map((skill) => (
-                    <div key={skill.id} className="skill-item" data-skill={skill.skill_name}>
-                      <div className="flex items-center mb-2">
-                        <span className="text-sm font-medium text-muted-foreground transition-colors">
-                          {skill.skill_name}
-                        </span>
-                      </div>
+            {/* Skills Grid */}
+            <div ref={skillsRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {skillsData.map((category) => (
+                <div
+                  key={category.name}
+                  className="p-6 glass rounded-2xl transition-all duration-300 reveal-card reveal-border"
+                  data-scroll-animate
+                  data-animation="slide-up"
+                >
+                  <h3 className="text-lg font-bold mb-4 text-primary transition-colors">
+                    {category.name}
+                  </h3>
+                  <div className="space-y-4">
+                    {category.skills.map((skill) => (
+                      <div key={skill.id} className="skill-item" data-skill={skill.skill_name}>
+                        <div className="flex items-center mb-2">
+                          <span className="text-sm font-medium text-muted-foreground transition-colors">
+                            {skill.skill_name}
+                          </span>
+                        </div>
 
-                      {/* Skill Slider (read-only for visitors) */}
-                      <div className="mt-2">
-                        <SkillSlider
-                          value={skill.level}
-                          className="w-full"
-                          ariaLabel={`${skill.skill_name} proficiency`}
-                        />
+                        {/* Skill Slider */}
+                        <div className="mt-2">
+                          <SkillSlider
+                            value={skill.level}
+                            className="w-full"
+                            ariaLabel={`${skill.skill_name} proficiency`}
+                          />
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Additional info */}
-          <div className="mt-16 p-8 glass rounded-2xl glow-effect reveal-card reveal-border">
-            <h3 className="text-xl font-bold mb-4">Additional Expertise</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div>
-                <h4 className="font-semibold text-primary mb-2">Performance Optimization</h4>
-                <p className="text-muted-foreground text-sm">
-                  Specialized in reducing CPU/GPU load, memory optimization, and achieving high FPS across platforms
-                </p>
-              </div>
-              <div>
-                <h4 className="font-semibold text-primary mb-2">System Architecture</h4>
-                <p className="text-muted-foreground text-sm">
-                  Designing scalable, maintainable systems for large multiplayer projects and complex interactions
-                </p>
-              </div>
-              <div>
-                <h4 className="font-semibold text-primary mb-2">UI/UX Design</h4>
-                <p className="text-muted-foreground text-sm">
-                  Creating intuitive interfaces for both traditional and spatial/VR environments
-                </p>
-              </div>
+              ))}
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
     </>
   )
 }

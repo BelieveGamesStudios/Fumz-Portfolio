@@ -13,7 +13,7 @@ interface FormData {
   message: string
 }
 
-export function ContactSection() {
+export function ContactSection({ isModal = false }: { isModal?: boolean } = {}) {
   const [formData, setFormData] = useState<FormData>({
     name: "",
     email: "",
@@ -69,24 +69,33 @@ export function ContactSection() {
   ]
 
   return (
-    <section id="contact" className="relative w-full py-24 px-4 sm:px-6 lg:px-8 bg-background overflow-hidden">
+    <section
+      id="contact"
+      className={
+        isModal
+          ? "relative w-full py-4 px-2 overflow-hidden"
+          : "relative w-full py-24 px-4 sm:px-6 lg:px-8 bg-background overflow-hidden"
+      }
+    >
       <div className="absolute top-20 right-1/3 w-96 h-96 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-20 left-1/4 w-96 h-96 bg-accent/5 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="relative z-10 max-w-6xl mx-auto">
-        <div className="space-y-4 mb-16 text-center" data-scroll-animate data-animation="slide-up">
-          <h2 className="text-4xl sm:text-5xl font-bold">Let's Create Something Amazing</h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Whether you have a game idea, need VR/AR expertise, or want to collaborate on an immersive project, I'd love
-            to hear from you.
-          </p>
-        </div>
+      <div className={isModal ? "relative z-10 w-full" : "relative z-10 max-w-6xl mx-auto"}>
+        {!isModal && (
+          <div className="space-y-4 mb-16 text-center" data-scroll-animate data-animation="slide-up">
+            <h2 className="text-4xl sm:text-5xl font-bold">Let's Create Something Amazing</h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Whether you have a game idea, need VR/AR expertise, or want to collaborate on an immersive project, I'd love
+              to hear from you.
+            </p>
+          </div>
+        )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          <div className="space-y-8" data-scroll-animate data-animation="slide-left">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="space-y-2">
-                <label htmlFor="name" className="block text-sm font-medium text-foreground">
+        <div className={isModal ? "grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8" : "grid grid-cols-1 lg:grid-cols-2 gap-12"}>
+          <div className={isModal ? "space-y-4" : "space-y-8"} data-scroll-animate data-animation="slide-left">
+            <form onSubmit={handleSubmit} className={isModal ? "space-y-4" : "space-y-6"}>
+              <div className="space-y-1.5">
+                <label htmlFor="name" className="block text-xs sm:text-sm font-medium text-foreground">
                   Your Name
                 </label>
                 <input
@@ -97,12 +106,12 @@ export function ContactSection() {
                   onChange={handleChange}
                   required
                   placeholder="Enter your name"
-                  className="w-full px-4 py-3 glass rounded-xl text-foreground placeholder-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                  className="w-full px-3.5 py-2.5 sm:px-4 sm:py-3 glass rounded-xl text-foreground placeholder-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary text-sm"
                 />
               </div>
 
-              <div className="space-y-2">
-                <label htmlFor="email" className="block text-sm font-medium text-foreground">
+              <div className="space-y-1.5">
+                <label htmlFor="email" className="block text-xs sm:text-sm font-medium text-foreground">
                   Email Address
                 </label>
                 <input
@@ -113,12 +122,12 @@ export function ContactSection() {
                   onChange={handleChange}
                   required
                   placeholder="your@email.com"
-                  className="w-full px-4 py-3 glass rounded-xl text-foreground placeholder-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                  className="w-full px-3.5 py-2.5 sm:px-4 sm:py-3 glass rounded-xl text-foreground placeholder-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary text-sm"
                 />
               </div>
 
-              <div className="space-y-2">
-                <label htmlFor="subject" className="block text-sm font-medium text-foreground">
+              <div className="space-y-1.5">
+                <label htmlFor="subject" className="block text-xs sm:text-sm font-medium text-foreground">
                   Subject
                 </label>
                 <input
@@ -129,12 +138,12 @@ export function ContactSection() {
                   onChange={handleChange}
                   required
                   placeholder="What's this about?"
-                  className="w-full px-4 py-3 glass rounded-xl text-foreground placeholder-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                  className="w-full px-3.5 py-2.5 sm:px-4 sm:py-3 glass rounded-xl text-foreground placeholder-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary text-sm"
                 />
               </div>
 
-              <div className="space-y-2">
-                <label htmlFor="message" className="block text-sm font-medium text-foreground">
+              <div className="space-y-1.5">
+                <label htmlFor="message" className="block text-xs sm:text-sm font-medium text-foreground">
                   Message
                 </label>
                 <textarea
@@ -144,15 +153,15 @@ export function ContactSection() {
                   onChange={handleChange}
                   required
                   placeholder="Tell me about your project..."
-                  rows={6}
-                  className="w-full px-4 py-3 glass rounded-xl text-foreground placeholder-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary resize-none"
+                  rows={isModal ? 3 : 6}
+                  className="w-full px-3.5 py-2.5 sm:px-4 sm:py-3 glass rounded-xl text-foreground placeholder-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary resize-none text-sm"
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full px-6 py-3 bg-gradient-to-r from-primary to-accent text-primary-foreground rounded-xl font-semibold hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+                className="w-full px-5 py-2.5 sm:py-3 bg-gradient-to-r from-primary to-accent text-primary-foreground rounded-xl font-semibold hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 text-sm sm:text-base cursor-pointer"
               >
                 <Send className="w-4 h-4" />
                 {isSubmitting ? "Sending..." : submitStatus === "success" ? "Message Sent!" : "Send Message"}
@@ -162,22 +171,26 @@ export function ContactSection() {
             </form>
           </div>
 
-          <div className="space-y-8 flex flex-col justify-center">
-            <div className="space-y-4">
-              <h3 className="text-2xl font-bold">Get In Touch</h3>
-              <p className="text-muted-foreground">I'm always open to new opportunities and collaborations.</p>
+          <div className={isModal ? "space-y-6 flex flex-col justify-start md:justify-center" : "space-y-8 flex flex-col justify-center"}>
+            <div className="space-y-2">
+              <h3 className="text-xl sm:text-2xl font-bold">Get In Touch</h3>
+              <p className="text-muted-foreground text-xs sm:text-sm">I'm always open to new opportunities and collaborations.</p>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-3">
               {socialLinks.map((link) => {
                 const Icon = link.icon
                 return (
                   <a
                     key={link.label}
                     href={link.href}
-                    className="flex items-center gap-3 p-4 glass rounded-lg hover:glass-sm transition-all"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 p-3.5 glass rounded-xl hover:glass-sm hover:border-primary/40 transition-all text-sm"
                   >
-                    <Icon className="w-5 h-5 text-primary" />
+                    <div className="p-2 rounded-lg bg-primary/10 text-primary shrink-0">
+                      <Icon className="w-4 h-4" />
+                    </div>
                     <span className="font-medium">{link.label}</span>
                   </a>
                 )

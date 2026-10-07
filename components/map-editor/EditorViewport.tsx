@@ -172,7 +172,7 @@ export function EditorViewport({
       {/* Mode Overlay Badge */}
       <div className="absolute top-4 left-4 z-10 pointer-events-none flex items-center gap-2">
         <span className="px-2.5 py-1 text-xs font-semibold rounded-md bg-slate-900/80 backdrop-blur border border-white/20 text-white flex items-center gap-1.5 shadow-lg">
-          <span className={`w-2 h-2 rounded-full ${editorMode === "buildings" ? "bg-cyan-400" : "bg-amber-400"}`} />
+          <span className={`w-2 h-2 rounded-full ${editorMode === "buildings" ? "bg-accent" : "bg-[#D5A68C]"}`} />
           {editorMode === "buildings" ? "BUILDINGS MODE" : "WAYPOINTS GIZMO MODE"}
         </span>
 

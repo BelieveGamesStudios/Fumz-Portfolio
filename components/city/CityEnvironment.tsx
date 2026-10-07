@@ -4,11 +4,11 @@ export function CityEnvironment() {
   return (
     <>
       {/* Soft warm sun lighting matching low-poly diorama */}
-      <ambientLight intensity={0.85} color="#ffffff" />
+      <ambientLight intensity={0.9} color="#f3e6dc" />
       <directionalLight
         position={[35, 60, 30]}
         intensity={1.3}
-        color="#fffbeb"
+        color="#f4c8aa"
         castShadow
         shadow-mapSize-width={2048}
         shadow-mapSize-height={2048}
@@ -20,20 +20,20 @@ export function CityEnvironment() {
       />
 
       {/* Sky & ground bounce */}
-      <hemisphereLight args={["#7cb9e8", "#497c27", 0.4]} />
+      <hemisphereLight args={["#c8a895", "#4d3328", 0.48]} />
 
       {/* Raised Diorama Platform (Top Grass + Brown Soil Edge like in the reference) */}
       <group position={[0, -0.9, 0]}>
         {/* Diorama Ground Slab (Height: 1.8) */}
         <mesh receiveShadow position={[0, 0, 0]}>
           <boxGeometry args={[90, 1.8, 68]} />
-          <meshStandardMaterial color="#6fa83e" roughness={0.8} />
+          <meshStandardMaterial color="#8d725d" roughness={0.86} />
         </mesh>
 
         {/* Brown Earth Edge on Bottom Sides */}
         <mesh position={[0, -0.85, 0]}>
           <boxGeometry args={[90.1, 0.3, 68.1]} />
-          <meshStandardMaterial color="#6a4728" roughness={0.9} />
+          <meshStandardMaterial color="#4d2f22" roughness={0.92} />
         </mesh>
       </group>
     </>

@@ -17,14 +17,14 @@ const CAR_PATHS = [
 CAR_PATHS.forEach((path) => useFBX.preload(path))
 
 const CAR_COLORS = [
-  "#38bdf8", // Sky Blue
-  "#f43f5e", // Rose Red
-  "#fbbf24", // Vibrant Yellow
-  "#ec4899", // Pastel Pink
-  "#34d399", // Mint Green
-  "#f97316", // Warm Orange
-  "#a855f7", // Purple
-  "#ffffff", // Clean White
+  "#87482d", // Burnt copper
+  "#b96843", // Terracotta
+  "#d3a184", // Warm sand
+  "#6c3c2a", // Deep sienna
+  "#8f7a63", // Stone
+  "#c57950", // Clay
+  "#4b3430", // Espresso
+  "#eee2db", // Porcelain
 ]
 
 interface CarState {

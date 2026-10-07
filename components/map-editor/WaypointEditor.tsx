@@ -108,12 +108,12 @@ function InteractiveWaypointNode({
           color={
             isRouteDisabled
               ? isSelected ? "#f87171" : "#64748b"
-              : isSelected ? "#38bdf8" : hovered ? "#fde047" : routeColor
+              : isSelected ? "#d08a63" : hovered ? "#e1c1af" : routeColor
           }
           emissive={
             isRouteDisabled
               ? isSelected ? "#ef4444" : "#475569"
-              : isSelected ? "#0284c7" : hovered ? "#eab308" : routeColor
+              : isSelected ? "#87482d" : hovered ? "#c57950" : routeColor
           }
           emissiveIntensity={isRouteDisabled ? (isSelected ? 0.6 : 0.2) : isSelected ? 1.2 : hovered ? 0.8 : 0.4}
           roughness={0.3}
@@ -129,7 +129,7 @@ function InteractiveWaypointNode({
           <div className={`text-[11px] font-mono px-2 py-0.5 rounded-md shadow-lg whitespace-nowrap select-none backdrop-blur border ${
             isRouteDisabled
               ? "bg-red-950/90 text-red-200 border-red-500/50"
-              : "bg-slate-900/95 text-white border-sky-400/40"
+              : "bg-[#211E1C]/95 text-white border-primary/50"
           }`}>
             #{index} {isRouteDisabled ? "(Path Disabled)" : `(${point[0].toFixed(1)}, ${point[2].toFixed(1)})`}
           </div>
@@ -141,7 +141,7 @@ function InteractiveWaypointNode({
         <mesh position={[0, -0.02, 0]} rotation={[-Math.PI / 2, 0, 0]}>
           <ringGeometry args={[0.8, 1.05, 32]} />
           <meshBasicMaterial
-            color={isRouteDisabled ? "#ef4444" : "#38bdf8"}
+            color={isRouteDisabled ? "#bd4b3e" : "#d08a63"}
             side={THREE.DoubleSide}
             transparent
             opacity={0.9}
