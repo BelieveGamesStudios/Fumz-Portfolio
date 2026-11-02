@@ -216,7 +216,7 @@ export function ContactSection() {
             {/* Bottom Signature / Footer */}
             <div className="p-6 bg-neutral-900 text-white rounded-2xl flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full overflow-hidden bg-white flex items-center justify-center p-0.5 shadow-sm">
+                <div className="w-10 h-10 rounded-full overflow-hidden bg-white flex items-center justify-center p-1 shadow-sm">
                   <img
                     src="/apple-icon.png"
                     alt="App Logo"
