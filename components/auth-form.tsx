@@ -63,9 +63,16 @@ export function AuthForm() {
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <Card className="w-full max-w-md p-6">
         <div className="space-y-6">
-          <div>
+          <div className="flex flex-col items-center text-center">
+            <div className="w-14 h-14 rounded-full overflow-hidden bg-white border border-neutral-200/90 shadow-sm flex items-center justify-center p-1 mb-3">
+              <img
+                src="/apple-icon.png"
+                alt="App Logo"
+                className="w-full h-full object-contain rounded-full"
+              />
+            </div>
             <h1 className="text-2xl font-bold">Admin Login</h1>
-            <p className="text-muted-foreground mt-2">
+            <p className="text-muted-foreground mt-1 text-sm">
               Sign in to manage your portfolio
             </p>
           </div>
