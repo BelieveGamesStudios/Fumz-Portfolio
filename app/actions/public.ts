@@ -63,3 +63,30 @@ export async function getPublicSkills() {
         return []
     }
 }
+
+
+export async function getPublicSocialLinks(): Promise<Record<string, string>> {
+    const supabase = await createClient()
+
+    try {
+        const { data, error } = await supabase
+            .from('social_links')
+            .select('platform, url')
+
+        if (error) {
+            console.error('Public social links fetch error:', error)
+            return {}
+        }
+
+        const map: Record<string, string> = {}
+        data?.forEach((row: { platform: string; url: string }) => {
+            if (row.url && row.url.trim().length > 0) {
+                map[row.platform.toLowerCase()] = row.url.trim()
+            }
+        })
+        return map
+    } catch (err) {
+        console.error('Error in getPublicSocialLinks:', err)
+        return {}
+    }
+}

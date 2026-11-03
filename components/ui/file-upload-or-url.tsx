@@ -225,11 +225,11 @@ export function FileUploadOrUrl({
                   </div>
                 )}
 
-                <div className="min-w-0 flex-1 overflow-hidden">
+                <div className="min-w-0 w-0 flex-1 overflow-hidden">
                   <p className="text-xs font-bold text-neutral-900 truncate">
                     {fileName || value.split('/').pop() || 'Uploaded Resource'}
                   </p>
-                  <p className="text-[11px] text-neutral-500 truncate block max-w-full">{value}</p>
+                  <p className="text-[11px] text-neutral-500 truncate block w-full" title={value}>{value}</p>
                 </div>
               </div>
 

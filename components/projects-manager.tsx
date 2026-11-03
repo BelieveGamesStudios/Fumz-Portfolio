@@ -252,8 +252,8 @@ export function ProjectsManager() {
             Add New Project
           </Button>
         </DialogTrigger>
-        <DialogContent className="max-w-[95vw] sm:max-w-[90vw] md:max-w-[85vw] lg:max-w-4xl w-full h-[90vh] flex flex-col p-0 gap-0">
-          <div className="p-6 pb-2">
+        <DialogContent className="max-w-[95vw] sm:max-w-[90vw] md:max-w-[85vw] lg:max-w-4xl w-full h-[90vh] flex flex-col p-0 gap-0 overflow-hidden rounded-2xl bg-white border border-neutral-200 shadow-2xl">
+          <div className="p-6 pb-2 shrink-0 border-b border-neutral-100 bg-neutral-50/70">
             <DialogHeader>
               <DialogTitle>{editingId ? 'Edit Project' : 'Add New Project'}</DialogTitle>
               <DialogDescription>
@@ -262,7 +262,7 @@ export function ProjectsManager() {
             </DialogHeader>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-6 pt-2 space-y-6">
+          <div className="flex-1 overflow-y-auto p-6 pt-4 space-y-6 min-w-0">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="title">Project Title *</Label>

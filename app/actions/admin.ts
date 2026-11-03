@@ -526,3 +526,60 @@ export async function deleteExperience(id: string) {
 
   if (error) throw error
 }
+
+
+export async function getSocialLinks(): Promise<Record<string, string>> {
+  const supabase = await createClient()
+  await getAdminUser()
+
+  const { data, error } = await supabase
+    .from('social_links')
+    .select('platform, url')
+
+  if (error) {
+    console.error('Error fetching social links:', error)
+    return {}
+  }
+
+  const map: Record<string, string> = {
+    x: '',
+    linkedin: '',
+    github: '',
+    instagram: '',
+  }
+
+  data?.forEach((row: { platform: string; url: string }) => {
+    map[row.platform.toLowerCase()] = row.url || ''
+  })
+
+  return map
+}
+
+export async function updateSocialLinks(links: Record<string, string>) {
+  const supabase = await createClient()
+  await getAdminUser()
+
+  const entries = Object.entries(links)
+  for (const [platform, url] of entries) {
+    const cleanPlatform = platform.toLowerCase().trim()
+    const cleanUrl = url.trim()
+
+    const { error } = await supabase
+      .from('social_links')
+      .upsert(
+        {
+          platform: cleanPlatform,
+          url: cleanUrl,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'platform' }
+      )
+
+    if (error) {
+      console.error(`Error updating social link for ${cleanPlatform}:`, error)
+      throw error
+    }
+  }
+
+  return true
+}

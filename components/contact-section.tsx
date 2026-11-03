@@ -1,10 +1,18 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
-import { Mail, Linkedin, Github, Send, MessageSquare, ArrowUpRight } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Mail, Linkedin, Github, Instagram, Send, MessageSquare, ArrowUpRight } from "lucide-react"
 import { submitContactForm } from "@/app/actions/admin"
 import { useToast } from "@/components/ui/use-toast"
+
+function XLogo({ className = "w-5 h-5" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+    </svg>
+  )
+}
 
 interface FormData {
   name: string
@@ -62,26 +70,76 @@ export function ContactSection() {
     }
   }
 
-  const socialLinks = [
+  const [socialLinksMap, setSocialLinksMap] = useState<{
+    github?: string
+    linkedin?: string
+    x?: string
+    instagram?: string
+  }>({
+    github: "https://github.com/believegamesstudios",
+    linkedin: "https://www.linkedin.com/in/believe-studios?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=ios_app",
+  })
+
+  useEffect(() => {
+    fetch("/api/links")
+      .then((res) => (res.ok ? res.json() : {}))
+      .then((data) => {
+        if (data && typeof data === "object") {
+          setSocialLinksMap(data)
+        }
+      })
+      .catch(() => {})
+  }, [])
+
+  const socialLinks: Array<{
+    icon: React.ComponentType<{ className?: string }>
+    label: string
+    value: string
+    href: string
+  }> = [
     {
       icon: Mail,
       label: "Direct Email",
       value: "afolabifunmilade229@gmail.com",
       href: "mailto:afolabifunmilade229@gmail.com",
     },
-    {
+  ]
+
+  if (socialLinksMap.x) {
+    socialLinks.push({
+      icon: XLogo,
+      label: "𝕏 (Twitter)",
+      value: socialLinksMap.x.replace(/^https?:\/\/(www\.)?(x\.com|twitter\.com)\//, "@"),
+      href: socialLinksMap.x,
+    })
+  }
+
+  if (socialLinksMap.linkedin) {
+    socialLinks.push({
       icon: Linkedin,
       label: "LinkedIn Profile",
       value: "Believe Studios / Afolabi",
-      href: "https://www.linkedin.com/in/believe-studios?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=ios_app",
-    },
-    {
+      href: socialLinksMap.linkedin,
+    })
+  }
+
+  if (socialLinksMap.github) {
+    socialLinks.push({
       icon: Github,
       label: "GitHub Repositories",
       value: "believegamesstudios",
-      href: "https://github.com/believegamesstudios",
-    },
-  ]
+      href: socialLinksMap.github,
+    })
+  }
+
+  if (socialLinksMap.instagram) {
+    socialLinks.push({
+      icon: Instagram,
+      label: "Instagram",
+      value: socialLinksMap.instagram.replace(/^https?:\/\/(www\.)?instagram\.com\//, "@").replace(/\/$/, ""),
+      href: socialLinksMap.instagram,
+    })
+  }
 
   return (
     <section id="contact" className="relative w-full py-20 px-4 sm:px-8 lg:px-14 bg-white border-t border-neutral-200/80">

@@ -203,63 +203,63 @@ export function ContactSubmissions() {
 
       {selectedSubmission && (
         <Dialog open={!!selectedSubmission} onOpenChange={() => setSelectedSubmission(null)}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Contact Submission</DialogTitle>
-              <DialogDescription>From {selectedSubmission.name}</DialogDescription>
+          <DialogContent className="w-[95vw] sm:w-[90vw] max-w-2xl sm:max-w-2xl max-h-[92vh] flex flex-col p-0 overflow-hidden rounded-2xl bg-white border border-neutral-200 shadow-2xl">
+            <DialogHeader className="p-5 sm:p-6 pb-4 border-b border-neutral-100 bg-neutral-50/70 shrink-0">
+              <DialogTitle className="text-lg sm:text-xl font-bold text-neutral-900">Contact Submission</DialogTitle>
+              <DialogDescription className="text-xs sm:text-sm text-neutral-500">From {selectedSubmission.name}</DialogDescription>
             </DialogHeader>
 
-            <div className="space-y-4">
-              <div className="bg-secondary/20 rounded-lg p-4 space-y-3">
+            <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4 min-w-0">
+              <div className="bg-neutral-50 border border-neutral-200/80 rounded-xl p-4 space-y-3">
                 <div>
-                  <p className="text-sm text-muted-foreground">From</p>
-                  <p className="font-medium">{selectedSubmission.name}</p>
+                  <p className="text-xs font-semibold text-neutral-500">From</p>
+                  <p className="font-medium text-neutral-900">{selectedSubmission.name}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Email</p>
+                  <p className="text-xs font-semibold text-neutral-500">Email</p>
                   <a href={`mailto:${selectedSubmission.email}`} className="font-medium text-primary hover:underline">
                     {selectedSubmission.email}
                   </a>
                 </div>
                 {selectedSubmission.subject && (
                   <div>
-                    <p className="text-sm text-muted-foreground">Subject</p>
-                    <p className="font-medium">{selectedSubmission.subject}</p>
+                    <p className="text-xs font-semibold text-neutral-500">Subject</p>
+                    <p className="font-medium text-neutral-900">{selectedSubmission.subject}</p>
                   </div>
                 )}
                 <div>
-                  <p className="text-sm text-muted-foreground">Date</p>
-                  <p className="text-sm">{format(new Date(selectedSubmission.created_at), 'PPpp')}</p>
+                  <p className="text-xs font-semibold text-neutral-500">Date</p>
+                  <p className="text-xs text-neutral-700">{format(new Date(selectedSubmission.created_at), 'PPpp')}</p>
                 </div>
               </div>
 
               <div>
-                <p className="text-sm text-muted-foreground mb-2">Message</p>
-                <div className="bg-secondary/10 rounded-lg p-4 whitespace-pre-wrap text-sm border border-border">
+                <p className="text-xs font-semibold text-neutral-500 mb-1.5">Message</p>
+                <div className="bg-neutral-50 rounded-xl p-4 whitespace-pre-wrap text-sm border border-neutral-200/80 text-neutral-800 leading-relaxed">
                   {selectedSubmission.message}
                 </div>
               </div>
+            </div>
 
-              <div className="flex gap-2 justify-end">
-                {!selectedSubmission.read && (
-                  <Button onClick={() => handleMarkAsRead(selectedSubmission.id)} variant="outline" className="gap-2">
-                    <CheckCircle2 className="w-4 h-4" />
-                    Mark as Read
-                  </Button>
-                )}
-                <Button onClick={() => handleArchive(selectedSubmission.id)} variant="outline" className="gap-2">
-                  <Archive className="w-4 h-4" />
-                  Archive
+            <div className="p-4 sm:p-5 border-t border-neutral-100 bg-neutral-50/70 flex gap-2 justify-end shrink-0">
+              {!selectedSubmission.read && (
+                <Button onClick={() => handleMarkAsRead(selectedSubmission.id)} variant="outline" className="gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-green-600" />
+                  Mark as Read
                 </Button>
-                <Button
-                  onClick={() => handleDelete(selectedSubmission.id)}
-                  variant="destructive"
-                  className="gap-2"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  Delete
-                </Button>
-              </div>
+              )}
+              <Button onClick={() => handleArchive(selectedSubmission.id)} variant="outline" className="gap-2">
+                <Archive className="w-4 h-4" />
+                Archive
+              </Button>
+              <Button
+                onClick={() => handleDelete(selectedSubmission.id)}
+                variant="destructive"
+                className="gap-2 bg-red-600 hover:bg-red-700 text-white shadow-xs"
+              >
+                <Trash2 className="w-4 h-4" />
+                Delete
+              </Button>
             </div>
           </DialogContent>
         </Dialog>

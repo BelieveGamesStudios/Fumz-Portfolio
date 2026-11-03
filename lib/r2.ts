@@ -32,7 +32,7 @@ export async function getPresignedUploadUrl({
   })
 
   const uploadUrl = await getSignedUrl(r2Client, command, { expiresIn })
-  const publicBaseUrl = (process.env.R2_PUBLIC_URL || '').replace(/\/$/, '')
+  const publicBaseUrl = (process.env.R2_PUBLIC_URL || '/api/media').replace(/\/$/, '')
   const publicUrl = `${publicBaseUrl}/${key}`
 
   return { uploadUrl, publicUrl, key }
