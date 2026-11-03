@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { useToast } from '@/components/ui/use-toast'
 import { Trash2, Plus } from 'lucide-react'
+import { FileUploadOrUrl } from '@/components/ui/file-upload-or-url'
 
 interface Certification {
   id: string
@@ -121,15 +122,16 @@ export function CertificationsManager() {
               <Input id="cert-date" type="date" value={form.issued_date} onChange={(e) => setForm({ ...form, issued_date: e.target.value })} />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="cert-url">Certificate Image URL</Label>
-              <Input
-                id="cert-url"
-                value={form.credential_url}
-                onChange={(e) => setForm({ ...form, credential_url: e.target.value })}
-                placeholder="https://example.com/certificate.jpg"
-              />
-            </div>
+            <FileUploadOrUrl
+              label="Certificate Document / Image"
+              value={form.credential_url}
+              onChange={(url) => setForm({ ...form, credential_url: url })}
+              folder="certifications"
+              accept="image/*,application/pdf"
+              maxSizeMB={25}
+              placeholder="https://example.com/certificate.jpg"
+              description="Direct upload to Cloudflare R2 (images or PDF) or paste an external URL"
+            />
 
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>
@@ -142,7 +144,7 @@ export function CertificationsManager() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {certs.length > 0 ? (
           certs.map((c) => (
-            <Card key={c.id} className="p-4 flex items-start gap-4">
+            <Card key={c.id} className="p-4 border border-neutral-200/90 shadow-xs hover:border-neutral-300 transition-all bg-white flex items-start gap-4">
               {c.credential_url ? (
                 <img src={c.credential_url} alt={c.title} className="w-24 h-16 object-cover rounded-md" />
               ) : (
@@ -155,7 +157,7 @@ export function CertificationsManager() {
                     <p className="font-medium">{c.title}</p>
                     <p className="text-sm text-muted-foreground">{c.issuer} • {c.issued_date ?? '—'}</p>
                   </div>
-                  <Button size="sm" variant="destructive" onClick={() => handleDelete(c.id)}>
+                  <Button size="sm" variant="destructive" onClick={() => handleDelete(c.id)} className="bg-red-600 hover:bg-red-700 text-white shadow-xs">
                     <Trash2 className="w-4 h-4" />
                   </Button>
                 </div>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { getProjects, addProject, updateProject, deleteProject } from '@/app/actions/admin'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label'
 import { useToast } from '@/components/ui/use-toast'
 import { RichTextEditor } from './rich-text-editor'
 import { Trash2, Edit2, Plus, X, Film, Download } from 'lucide-react'
-import { ImageUpload } from '@/components/ui/image-upload'
+import { FileUploadOrUrl } from '@/components/ui/file-upload-or-url'
 
 interface Project {
   id: string
@@ -29,6 +29,8 @@ export function ProjectsManager() {
   const [loading, setLoading] = useState(true)
   const [isOpen, setIsOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [isCreatingCategory, setIsCreatingCategory] = useState(false)
+  const [newCategoryName, setNewCategoryName] = useState('')
   const { toast } = useToast()
 
   const [formData, setFormData] = useState({
@@ -42,6 +44,36 @@ export function ProjectsManager() {
     download_url: '',
     screenshots: [] as Array<{ url: string; caption?: string }>,
   })
+
+  const DEFAULT_CATEGORIES = [
+    { value: 'xr', label: 'XR Apps' },
+    { value: 'mobile', label: 'Mobile' },
+    { value: 'desktop', label: 'Desktop' },
+  ]
+
+  const availableCategories = useMemo(() => {
+    const list = [...DEFAULT_CATEGORIES]
+    const defaultVals = new Set(['xr', 'mobile', 'desktop'])
+
+    projects.forEach((p) => {
+      if (p.category && !defaultVals.has(p.category.toLowerCase())) {
+        const trimmed = p.category.trim()
+        if (!list.some((c) => c.value.toLowerCase() === trimmed.toLowerCase())) {
+          list.push({ value: trimmed, label: trimmed })
+        }
+      }
+    })
+
+    if (
+      formData.category &&
+      !list.some((c) => c.value.toLowerCase() === formData.category.toLowerCase()) &&
+      formData.category !== '__new__'
+    ) {
+      list.push({ value: formData.category, label: formData.category })
+    }
+
+    return list
+  }, [projects, formData.category])
 
   const [screenshotInput, setScreenshotInput] = useState('')
   const [screenshotCaption, setScreenshotCaption] = useState('')
@@ -108,6 +140,11 @@ export function ProjectsManager() {
     }
 
     try {
+      const finalCategory =
+        (isCreatingCategory && newCategoryName.trim())
+          ? newCategoryName.trim()
+          : (formData.category === '__new__' ? 'xr' : formData.category)
+
       const platformArray = formData.platforms
         .split(',')
         .map((p) => p.trim())
@@ -117,12 +154,14 @@ export function ProjectsManager() {
         console.log('Submitting update for:', editingId)
         await updateProject(editingId, {
           ...formData,
+          category: finalCategory,
           platforms: platformArray,
         })
         toast({ title: 'Success', description: 'Project updated successfully' })
       } else {
         await addProject({
           ...formData,
+          category: finalCategory,
           platforms: platformArray,
         })
         toast({ title: 'Success', description: 'Project added successfully' })
@@ -141,6 +180,8 @@ export function ProjectsManager() {
         screenshots: [],
       })
       setEditingId(null)
+      setIsCreatingCategory(false)
+      setNewCategoryName('')
       await loadProjects()
     } catch (error) {
       console.error('Project submission error:', error)
@@ -206,7 +247,7 @@ export function ProjectsManager() {
     <div className="space-y-4">
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogTrigger asChild>
-          <Button onClick={handleNewProject} className="gap-2">
+          <Button onClick={handleNewProject} className="gap-2 bg-neutral-900 hover:bg-neutral-800 text-white font-medium shadow-sm">
             <Plus className="w-4 h-4" />
             Add New Project
           </Button>
@@ -234,17 +275,66 @@ export function ProjectsManager() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="category">Category *</Label>
-                <select
-                  id="category"
-                  value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  className="w-full px-3 py-2 border border-input rounded-md bg-background"
-                >
-                  <option value="xr">XR Apps</option>
-                  <option value="mobile">Mobile</option>
-                  <option value="desktop">Desktop</option>
-                </select>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="category">Category *</Label>
+                  {isCreatingCategory && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsCreatingCategory(false)
+                        setNewCategoryName('')
+                        setFormData({ ...formData, category: availableCategories[0]?.value || 'xr' })
+                      }}
+                      className="text-xs text-neutral-500 hover:text-neutral-900 underline cursor-pointer"
+                    >
+                      Cancel custom category
+                    </button>
+                  )}
+                </div>
+
+                {!isCreatingCategory ? (
+                  <select
+                    id="category"
+                    value={formData.category}
+                    onChange={(e) => {
+                      if (e.target.value === '__new__') {
+                        setIsCreatingCategory(true)
+                        setNewCategoryName('')
+                      } else {
+                        setFormData({ ...formData, category: e.target.value })
+                      }
+                    }}
+                    className="w-full px-3 py-2 border border-input rounded-md bg-background text-sm cursor-pointer"
+                  >
+                    <optgroup label="Existing Categories">
+                      {availableCategories.map((cat) => (
+                        <option key={cat.value} value={cat.value}>
+                          {cat.label}
+                        </option>
+                      ))}
+                    </optgroup>
+                    <option value="__new__" className="font-semibold text-primary">
+                      + Create new category...
+                    </option>
+                  </select>
+                ) : (
+                  <div className="space-y-1.5">
+                    <Input
+                      id="new-category"
+                      value={newCategoryName}
+                      onChange={(e) => {
+                        setNewCategoryName(e.target.value)
+                        setFormData({ ...formData, category: e.target.value })
+                      }}
+                      placeholder="e.g. AI Tools, Web Apps, 3D Art"
+                      className="w-full"
+                      autoFocus
+                    />
+                    <p className="text-[11px] text-muted-foreground">
+                      This category will be saved and will immediately appear in your portfolio filters.
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -270,11 +360,15 @@ export function ProjectsManager() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="image">Featured Image</Label>
-                <ImageUpload
+                <FileUploadOrUrl
+                  label="Featured Image"
                   value={formData.image}
                   onChange={(url) => setFormData({ ...formData, image: url })}
-                  bucketName="Project Pictures"
+                  folder="projects"
+                  accept="image/*"
+                  maxSizeMB={25}
+                  placeholder="https://example.com/featured.jpg"
+                  description="Upload featured image to Cloudflare R2 or paste URL"
                 />
               </div>
             </div>
@@ -291,12 +385,15 @@ export function ProjectsManager() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="download_url">Download Link</Label>
-                <Input
-                  id="download_url"
+                <FileUploadOrUrl
+                  label="Build File / Download Link"
                   value={formData.download_url}
-                  onChange={(e) => setFormData({ ...formData, download_url: e.target.value })}
-                  placeholder="https://example.com/game.zip"
+                  onChange={(url) => setFormData({ ...formData, download_url: url })}
+                  folder="builds"
+                  accept=".zip,.rar,.7z,.tar,.gz,.apk,.exe,.dmg,.pkg,application/zip,application/x-zip-compressed,application/octet-stream"
+                  maxSizeMB={1000}
+                  placeholder="https://itch.io/..., https://example.com/game.zip"
+                  description="Direct upload to Cloudflare R2 (up to 1GB) or paste external link"
                 />
               </div>
             </div>
@@ -307,11 +404,15 @@ export function ProjectsManager() {
 
               <div className="space-y-3">
                 <div className="space-y-2">
-                  <Label htmlFor="screenshot-url">Screenshot</Label>
-                  <ImageUpload
+                  <FileUploadOrUrl
+                    label="Screenshot"
                     value={screenshotInput}
                     onChange={(url) => setScreenshotInput(url)}
-                    bucketName="screenshots"
+                    folder="projects"
+                    accept="image/*"
+                    maxSizeMB={25}
+                    placeholder="https://example.com/screenshot.jpg"
+                    description="Upload screenshot to Cloudflare R2 or paste URL"
                   />
                 </div>
 
@@ -376,30 +477,36 @@ export function ProjectsManager() {
 
       <div className="grid gap-4">
         {projects.map((project) => (
-          <Card key={project.id} className="p-4">
+          <Card key={project.id} className="p-4 sm:p-5 border border-neutral-200/90 shadow-xs hover:border-neutral-300 transition-all bg-white">
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
               <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-base sm:text-lg break-words">{project.title}</h3>
-                <p className="text-xs sm:text-sm text-muted-foreground mt-1 line-clamp-2 break-words">
+                <h3 className="font-bold text-base sm:text-lg text-neutral-900 break-words">{project.title}</h3>
+                <p className="text-xs sm:text-sm text-neutral-600 mt-1 line-clamp-2 break-words leading-relaxed">
                   {project.description.replace(/<[^>]*>/g, '')}
                 </p>
-                <div className="flex flex-wrap gap-1.5 sm:gap-2 mt-2">
-                  <span className="text-[10px] sm:text-xs bg-secondary px-1.5 sm:px-2 py-0.5 sm:py-1 rounded">{project.category}</span>
-                  {project.platform && <span className="text-[10px] sm:text-xs bg-secondary px-1.5 sm:px-2 py-0.5 sm:py-1 rounded">{project.platform}</span>}
+                <div className="flex flex-wrap gap-1.5 sm:gap-2 mt-3">
+                  <span className="text-[11px] sm:text-xs bg-neutral-100 text-neutral-700 font-medium px-2 py-0.5 sm:py-1 rounded border border-neutral-200/80">
+                    {availableCategories.find((c) => c.value.toLowerCase() === project.category?.toLowerCase())?.label || project.category}
+                  </span>
+                  {project.platform && (
+                    <span className="text-[11px] sm:text-xs bg-neutral-100 text-neutral-700 font-medium px-2 py-0.5 sm:py-1 rounded border border-neutral-200/80">
+                      {project.platform}
+                    </span>
+                  )}
                   {project.video_url && (
-                    <span className="text-[10px] sm:text-xs bg-primary/20 text-primary px-1.5 sm:px-2 py-0.5 sm:py-1 rounded flex items-center gap-1">
-                      <Film className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                    <span className="text-[11px] sm:text-xs bg-red-50 text-red-700 font-medium px-2 py-0.5 sm:py-1 rounded border border-red-200/80 flex items-center gap-1">
+                      <Film className="w-3 h-3 text-red-600" />
                       Video
                     </span>
                   )}
                   {project.download_url && (
-                    <span className="text-[10px] sm:text-xs bg-green-500/20 text-green-500 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded flex items-center gap-1">
-                      <Download className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                    <span className="text-[11px] sm:text-xs bg-emerald-50 text-emerald-800 font-medium px-2 py-0.5 sm:py-1 rounded border border-emerald-200/80 flex items-center gap-1">
+                      <Download className="w-3 h-3 text-emerald-700" />
                       Link
                     </span>
                   )}
                   {project.screenshots && project.screenshots.length > 0 && (
-                    <span className="text-[10px] sm:text-xs bg-primary/20 text-primary px-1.5 sm:px-2 py-0.5 sm:py-1 rounded">
+                    <span className="text-[11px] sm:text-xs bg-blue-50 text-blue-700 font-medium px-2 py-0.5 sm:py-1 rounded border border-blue-200/80">
                       {project.screenshots.length} screenshots
                     </span>
                   )}
@@ -410,18 +517,18 @@ export function ProjectsManager() {
                   size="sm"
                   variant="outline"
                   onClick={() => handleEdit(project)}
-                  className="gap-1.5 sm:gap-2 flex-1 sm:flex-initial text-xs sm:text-sm"
+                  className="gap-1.5 sm:gap-2 flex-1 sm:flex-initial text-xs sm:text-sm font-medium border-neutral-300 text-neutral-800 hover:bg-neutral-100"
                 >
-                  <Edit2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  <Edit2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-neutral-700" />
                   Edit
                 </Button>
                 <Button
                   size="sm"
                   variant="destructive"
                   onClick={() => handleDelete(project.id)}
-                  className="gap-1.5 sm:gap-2 flex-1 sm:flex-initial text-xs sm:text-sm"
+                  className="gap-1.5 sm:gap-2 flex-1 sm:flex-initial text-xs sm:text-sm font-medium bg-red-600 hover:bg-red-700 text-white shadow-xs"
                 >
-                  <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
                   Delete
                 </Button>
               </div>

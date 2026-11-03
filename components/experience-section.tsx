@@ -70,11 +70,21 @@ export function ExperienceSection() {
                   </span>
                 </div>
                 <h3 className="text-xl font-extrabold text-neutral-900">{exp.role}</h3>
-                <p className="text-sm font-bold text-neutral-600">{exp.company}</p>
+                <div className="flex items-center gap-2">
+                  {exp.company_logo && (
+                    <img
+                      src={exp.company_logo}
+                      alt={`${exp.company} logo`}
+                      className="w-5 h-5 sm:w-6 sm:h-6 object-contain rounded-md bg-white border border-neutral-200/80 p-0.5 shadow-2xs shrink-0"
+                    />
+                  )}
+                  <p className="text-sm font-bold text-neutral-700">{exp.company}</p>
+                </div>
                 {exp.description && (
-                  <p className="text-sm text-neutral-600 leading-relaxed pt-2 max-w-3xl">
-                    {exp.description}
-                  </p>
+                  <div
+                    className="rich-text-rendered text-sm text-neutral-600 leading-relaxed pt-2 max-w-3xl"
+                    dangerouslySetInnerHTML={{ __html: exp.description }}
+                  />
                 )}
               </div>
               {exp.location && (

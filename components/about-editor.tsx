@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { useToast } from '@/components/ui/use-toast'
 import { RichTextEditor } from '@/components/rich-text-editor'
+import { FileUploadOrUrl } from '@/components/ui/file-upload-or-url'
 
 interface AboutData {
   id: string
@@ -117,31 +118,23 @@ export function AboutEditor() {
           />
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="image_url">Profile Image URL</Label>
-          <Input
-            id="image_url"
-            value={formData.image_url}
-            onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-            placeholder="https://example.com/profile.jpg"
-          />
-          {formData.image_url && (
-            <div className="mt-2">
-              <img
-                src={formData.image_url}
-                alt="Preview"
-                className="w-32 h-32 object-cover rounded-lg border border-border"
-              />
-            </div>
-          )}
-        </div>
+        <FileUploadOrUrl
+          label="Profile Image"
+          value={formData.image_url}
+          onChange={(url) => setFormData({ ...formData, image_url: url })}
+          folder="uploads"
+          accept="image/*"
+          maxSizeMB={15}
+          placeholder="https://example.com/profile.jpg"
+          description="Upload profile photo directly to Cloudflare R2 or paste URL"
+        />
       </div>
 
       <div className="flex gap-2 justify-end">
         <Button variant="outline" onClick={loadAboutSection}>
           Reset
         </Button>
-        <Button onClick={handleSave} disabled={saving}>
+        <Button onClick={handleSave} disabled={saving} className="bg-neutral-900 hover:bg-neutral-800 text-white font-medium shadow-sm">
           {saving ? 'Saving...' : 'Save Changes'}
         </Button>
       </div>

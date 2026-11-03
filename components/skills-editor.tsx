@@ -208,7 +208,7 @@ export function SkillsEditor() {
                   const level = skillObj ? skillObj.level : 50
 
                   return (
-                    <Card key={skillName} className="p-4">
+                    <Card key={skillName} className="p-4 border border-neutral-200/90 shadow-xs hover:border-neutral-300 transition-all bg-white">
                       <div className="flex items-center justify-between gap-4">
                         <div className="flex-1 min-w-0">
                           <p className="font-medium">{skillName}</p>
@@ -243,7 +243,7 @@ export function SkillsEditor() {
                         </div>
 
                         {skillObj ? (
-                          <Button size="sm" variant="destructive" onClick={() => handleDeleteSkill(skillName)} className="gap-2">
+                          <Button size="sm" variant="destructive" onClick={() => handleDeleteSkill(skillName)} className="gap-2 font-medium bg-red-600 hover:bg-red-700 text-white shadow-xs">
                             <Trash2 className="w-4 h-4" />
                             Delete
                           </Button>

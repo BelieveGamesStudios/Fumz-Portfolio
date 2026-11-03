@@ -31,14 +31,44 @@ export function AdminDashboard() {
           </Link>
         </div>
 
-        <Tabs defaultValue="projects" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 h-auto gap-1.5 p-1.5">
-            <TabsTrigger value="projects" className="text-white text-xs sm:text-sm px-2 py-2 h-10 w-full cursor-pointer">Projects</TabsTrigger>
-            <TabsTrigger value="experiences" className="text-white text-xs sm:text-sm px-2 py-2 h-10 w-full cursor-pointer">XP</TabsTrigger>
-            <TabsTrigger value="skills" className="text-white text-xs sm:text-sm px-2 py-2 h-10 w-full cursor-pointer">Skills</TabsTrigger>
-            <TabsTrigger value="certs" className="text-white text-xs sm:text-sm px-2 py-2 h-10 w-full cursor-pointer">Certs</TabsTrigger>
-            <TabsTrigger value="about" className="text-white text-xs sm:text-sm px-2 py-2 h-10 w-full cursor-pointer">About</TabsTrigger>
-            <TabsTrigger value="contacts" className="text-white text-xs sm:text-sm px-2 py-2 h-10 w-full cursor-pointer">Contacts</TabsTrigger>
+        <Tabs defaultValue="projects" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 h-auto gap-1.5 p-1.5 bg-neutral-100 border border-neutral-200/90 rounded-xl shadow-xs">
+            <TabsTrigger
+              value="projects"
+              className="text-neutral-700 hover:text-neutral-900 data-[state=active]:bg-white data-[state=active]:text-neutral-900 data-[state=active]:shadow-sm font-semibold text-xs sm:text-sm px-2 py-2.5 h-10 w-full cursor-pointer rounded-lg transition-all"
+            >
+              Projects
+            </TabsTrigger>
+            <TabsTrigger
+              value="experiences"
+              className="text-neutral-700 hover:text-neutral-900 data-[state=active]:bg-white data-[state=active]:text-neutral-900 data-[state=active]:shadow-sm font-semibold text-xs sm:text-sm px-2 py-2.5 h-10 w-full cursor-pointer rounded-lg transition-all"
+            >
+              XP
+            </TabsTrigger>
+            <TabsTrigger
+              value="skills"
+              className="text-neutral-700 hover:text-neutral-900 data-[state=active]:bg-white data-[state=active]:text-neutral-900 data-[state=active]:shadow-sm font-semibold text-xs sm:text-sm px-2 py-2.5 h-10 w-full cursor-pointer rounded-lg transition-all"
+            >
+              Skills
+            </TabsTrigger>
+            <TabsTrigger
+              value="certs"
+              className="text-neutral-700 hover:text-neutral-900 data-[state=active]:bg-white data-[state=active]:text-neutral-900 data-[state=active]:shadow-sm font-semibold text-xs sm:text-sm px-2 py-2.5 h-10 w-full cursor-pointer rounded-lg transition-all"
+            >
+              Certs
+            </TabsTrigger>
+            <TabsTrigger
+              value="about"
+              className="text-neutral-700 hover:text-neutral-900 data-[state=active]:bg-white data-[state=active]:text-neutral-900 data-[state=active]:shadow-sm font-semibold text-xs sm:text-sm px-2 py-2.5 h-10 w-full cursor-pointer rounded-lg transition-all"
+            >
+              About
+            </TabsTrigger>
+            <TabsTrigger
+              value="contacts"
+              className="text-neutral-700 hover:text-neutral-900 data-[state=active]:bg-white data-[state=active]:text-neutral-900 data-[state=active]:shadow-sm font-semibold text-xs sm:text-sm px-2 py-2.5 h-10 w-full cursor-pointer rounded-lg transition-all"
+            >
+              Contacts
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="projects" className="space-y-4">

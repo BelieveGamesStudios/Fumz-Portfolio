@@ -1,17 +1,17 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
-import { ArrowUpRight, Smartphone, Cpu, LucideGlasses, Layers } from "lucide-react"
+import React, { useState, useEffect, useMemo } from "react"
+import { ArrowUpRight, Smartphone, Cpu, LucideGlasses, Layers, Tag } from "lucide-react"
 import Link from "next/link"
 import { stripHtml } from "@/lib/utils"
 
-type ProjectCategory = "all" | "xr" | "mobile" | "desktop"
+type ProjectCategory = string
 
 interface Project {
   id: string
   title: string
   description: string
-  category: Exclude<ProjectCategory, "all">
+  category: string
   image: string
   platforms: string[]
   link: string
@@ -74,7 +74,7 @@ const SAMPLE_PROJECTS: Project[] = [
   },
 ]
 
-const CATEGORIES: { label: string; value: ProjectCategory; icon: React.ReactNode }[] = [
+const BASE_CATEGORIES: { label: string; value: string; icon: React.ReactNode }[] = [
   { label: "All Works", value: "all", icon: <Layers className="w-3.5 h-3.5" /> },
   { label: "XR & VR", value: "xr", icon: <LucideGlasses className="w-3.5 h-3.5" /> },
   { label: "Mobile Apps", value: "mobile", icon: <Smartphone className="w-3.5 h-3.5" /> },
@@ -103,10 +103,32 @@ export function ProjectsSection() {
     fetchProjects()
   }, [])
 
+  const categories = useMemo(() => {
+    const custom: { label: string; value: string; icon: React.ReactNode }[] = []
+    const baseValues = new Set(['all', 'xr', 'mobile', 'desktop'])
+
+    projects.forEach((p) => {
+      if (p.category && !baseValues.has(p.category.toLowerCase())) {
+        const trimmed = p.category.trim()
+        if (!custom.some((c) => c.value.toLowerCase() === trimmed.toLowerCase())) {
+          custom.push({
+            label: trimmed,
+            value: trimmed,
+            icon: <Tag className="w-3.5 h-3.5" />,
+          })
+        }
+      }
+    })
+
+    return [...BASE_CATEGORIES, ...custom]
+  }, [projects])
+
   const filteredProjects =
     activeCategory === "all"
       ? projects
-      : projects.filter((project) => project.category === activeCategory)
+      : projects.filter(
+          (project) => project.category?.toLowerCase() === activeCategory.toLowerCase()
+        )
 
   return (
     <section id="projects" className="relative w-full py-20 px-4 sm:px-8 lg:px-14 bg-white border-t border-neutral-200/80">
@@ -127,12 +149,12 @@ export function ProjectsSection() {
 
           {/* Filter Pill Buttons */}
           <div className="flex flex-wrap gap-2">
-            {CATEGORIES.map((category) => (
+            {categories.map((category) => (
               <button
                 key={category.value}
                 onClick={() => setActiveCategory(category.value)}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all duration-200 flex items-center gap-1.5 ${
-                  activeCategory === category.value
+                className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all duration-200 flex items-center gap-1.5 cursor-pointer ${
+                  activeCategory.toLowerCase() === category.value.toLowerCase()
                     ? "bg-[#E31B23] text-white shadow-sm"
                     : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900"
                 }`}
