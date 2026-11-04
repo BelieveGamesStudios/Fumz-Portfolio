@@ -86,7 +86,7 @@ export function AdminDashboard() {
             <ExperiencesManager />
           </TabsContent>
 
-          <TabsContent value="skills" className="space-y-4">
+          <TabsContent value="skills" forceMount className="space-y-4 data-[state=inactive]:hidden">
             <SkillsEditor />
           </TabsContent>
 

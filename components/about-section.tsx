@@ -1,62 +1,13 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { getPublicAboutSection, getPublicSkills } from "@/app/actions/public"
+import { getPublicAboutSection, getPublicSkillCategories } from "@/app/actions/public"
+import { DEFAULT_SKILL_CATEGORIES, type SkillCategory } from "@/lib/skills"
 import { Award, Code2, Layers, Cpu } from "lucide-react"
 
-interface Skill {
-  id: string
-  skill_name: string
-  level: number
-  category: string
-}
-
-interface SkillCategory {
-  name: string
-  skills: Skill[]
-}
-
-const DEFAULT_SKILLS: SkillCategory[] = [
-  {
-    name: "Game Development",
-    skills: [
-      { id: "1", skill_name: "Programming & Scripting (C#)", level: 92, category: "Game Development" },
-      { id: "2", skill_name: "Game Architecture & Design", level: 88, category: "Game Development" },
-      { id: "3", skill_name: "Asset Pipeline & Physics", level: 85, category: "Game Development" },
-      { id: "4", skill_name: "Optimization & Profiling", level: 82, category: "Game Development" },
-    ],
-  },
-  {
-    name: "XR Development",
-    skills: [
-      { id: "5", skill_name: "Unity XR Interaction Toolkit", level: 94, category: "XR Development" },
-      { id: "6", skill_name: "Spatial Computing & Audio", level: 88, category: "XR Development" },
-      { id: "7", skill_name: "AR Foundation (ARKit / ARCore)", level: 85, category: "XR Development" },
-      { id: "8", skill_name: "Headset Latency Optimization", level: 80, category: "XR Development" },
-    ],
-  },
-  {
-    name: "Platforms & Hardware",
-    skills: [
-      { id: "9", skill_name: "Meta Quest 2 & 3 / Pro", level: 92, category: "Platforms & Hardware" },
-      { id: "10", skill_name: "Apple Vision Pro & iOS", level: 84, category: "Platforms & Hardware" },
-      { id: "11", skill_name: "PCVR & SteamVR", level: 88, category: "Platforms & Hardware" },
-      { id: "12", skill_name: "Cross-Platform Android", level: 82, category: "Platforms & Hardware" },
-    ],
-  },
-  {
-    name: "Tools & Ecosystem",
-    skills: [
-      { id: "13", skill_name: "Unity Engine 6 / LTS", level: 95, category: "Tools & Ecosystem" },
-      { id: "14", skill_name: "Blender 3D Modeling", level: 80, category: "Tools & Ecosystem" },
-      { id: "15", skill_name: "Git / Perforce Version Control", level: 88, category: "Tools & Ecosystem" },
-      { id: "16", skill_name: "Shader Graph & VFX Graph", level: 78, category: "Tools & Ecosystem" },
-    ],
-  },
-]
 
 export function AboutSection() {
-  const [skillsData, setSkillsData] = useState<SkillCategory[]>(DEFAULT_SKILLS)
+  const [skillsData, setSkillsData] = useState<SkillCategory[]>(DEFAULT_SKILL_CATEGORIES)
   const [aboutContent, setAboutContent] = useState<{ title: string; content: string; image_url?: string } | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -65,7 +16,7 @@ export function AboutSection() {
       try {
         const [about, skills] = await Promise.all([
           getPublicAboutSection().catch(() => null),
-          getPublicSkills().catch(() => []),
+          getPublicSkillCategories().catch(() => null),
         ])
 
         if (about) {
@@ -76,22 +27,8 @@ export function AboutSection() {
           })
         }
 
-        if (skills && skills.length > 0) {
-          // Group skills by category
-          const grouped: Record<string, Skill[]> = {}
-          skills.forEach((s) => {
-            const cat = s.category || "General"
-            if (!grouped[cat]) grouped[cat] = []
-            grouped[cat].push(s)
-          })
-
-          const formatted: SkillCategory[] = Object.keys(grouped).map((catName) => ({
-            name: catName,
-            skills: grouped[catName],
-          }))
-          if (formatted.length > 0) {
-            setSkillsData(formatted)
-          }
+        if (skills !== null) {
+          setSkillsData(skills.filter((category) => category.skills.length > 0))
         }
       } catch (err) {
         console.error("Error loading about/skills data:", err)
@@ -187,7 +124,7 @@ export function AboutSection() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {skillsData.map((category) => (
-                  <div key={category.name} className="space-y-3">
+                  <div key={category.id} className="space-y-3">
                     <span className="text-xs font-black uppercase tracking-wider text-neutral-400">
                       {category.name}
                     </span>

@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { DEFAULT_SKILL_CATEGORIES, validateSkillCategories, type SkillCategory } from '@/lib/skills'
 
 export async function getPublicCertifications() {
     const supabase = await createClient()
@@ -44,26 +45,24 @@ export async function getPublicAboutSection() {
     }
 }
 
-export async function getPublicSkills() {
-    const supabase = await createClient()
-
+export async function getPublicSkillCategories(): Promise<SkillCategory[] | null> {
     try {
+        const supabase = await createClient()
         const { data, error } = await supabase
-            .from('skill_levels')
-            .select('*')
-            .order('category', { ascending: true })
+            .from('skill_sections')
+            .select('categories')
+            .order('user_id', { ascending: true })
+            .limit(1)
+            .maybeSingle()
 
-        if (error) {
-            console.error('Public skills fetch error:', error)
-            return []
-        }
-        return data || []
+        if (error) throw error
+        // A saved empty array is intentional; only an absent row uses defaults.
+        return validateSkillCategories(data ? data.categories : DEFAULT_SKILL_CATEGORIES)
     } catch (err) {
-        console.error('Error in getPublicSkills:', err)
-        return []
+        console.error('Public skills fetch error:', err)
+        return null
     }
 }
-
 
 export async function getPublicSocialLinks(): Promise<Record<string, string>> {
     const supabase = await createClient()

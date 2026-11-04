@@ -1,264 +1,223 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
-import { getSkills, updateSkillLevel, deleteSkill } from '@/app/actions/admin'
-import { createClient } from '@/lib/supabase/client'
+import { useEffect, useState } from 'react'
+import { getSkillCategories, saveSkillCategories } from '@/app/actions/admin'
+import { moveItem, validateSkillCategories, type SkillCategory, type SkillItem } from '@/lib/skills'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Card } from '@/components/ui/card'
 import { useToast } from '@/components/ui/use-toast'
-import { Trash2 } from 'lucide-react'
+import { ArrowDown, ArrowUp, Loader2, Plus, Save, Trash2 } from 'lucide-react'
 
-interface Skill {
-  id: string
-  skill_name: string
-  level: number
-  category: string
-}
-
-const DEFAULT_CATEGORIES = [
-  'Game Development',
-  'XR Development',
-  'Platforms',
-  'Tools',
-]
-
-const PREDEFINED_SKILLS: Record<string, string[]> = {
-  'Game Development': [
-    'Programming & Scripting',
-    'Game Design Principles',
-    'Asset Integration & Management',
-    'Debugging & Testing',
-  ],
-  'XR Development': [
-    'Unity XR SDKs & Tools',
-    '3D Interaction & Input Handling',
-    'Spatial Computing',
-    'Performance & Latency Optimization',
-  ],
-  'Platforms': [
-    'Windows/Mac/Linux',
-    'iOS',
-    'Android',
-    'XR Headsets',
-  ],
-  'Tools': [
-    'Unity Engine',
-    'Blender',
-    'GIMP',
-    'Audacity',
-  ],
+function OrderButtons({ name, index, total, onMove }: {
+  name: string
+  index: number
+  total: number
+  onMove: (direction: -1 | 1) => void
+}) {
+  return (
+    <div className="flex gap-1">
+      <Button type="button" variant="outline" size="icon" disabled={index === 0}
+        aria-label={`Move ${name} up`} title="Move up" onClick={() => onMove(-1)}>
+        <ArrowUp className="h-4 w-4" />
+      </Button>
+      <Button type="button" variant="outline" size="icon" disabled={index === total - 1}
+        aria-label={`Move ${name} down`} title="Move down" onClick={() => onMove(1)}>
+        <ArrowDown className="h-4 w-4" />
+      </Button>
+    </div>
+  )
 }
 
 export function SkillsEditor() {
-  const [skills, setSkills] = useState<Skill[]>([])
+  const [categories, setCategories] = useState<SkillCategory[]>([])
+  const [savedSnapshot, setSavedSnapshot] = useState('[]')
+  const [newCategoryName, setNewCategoryName] = useState('')
   const [loading, setLoading] = useState(true)
-
+  const [loadError, setLoadError] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
   const { toast } = useToast()
-  const [isAuth, setIsAuth] = useState<boolean | null>(null)
-  const [optimisticLevels, setOptimisticLevels] = useState<Record<string, number>>({})
-  const debounceTimers = useRef<Record<string, number>>({})
+  const dirty = JSON.stringify(categories) !== savedSnapshot
 
-  useEffect(() => {
-    // Listen for auth state changes so the UI updates immediately after sign in/out
-    let mounted = true
-    let subscription: any
-
+  async function loadCategories() {
+    setLoading(true)
+    setLoadError(null)
     try {
-      const supabase = createClient()
-
-      // Initial check
-      supabase.auth.getUser().then(({ data }) => {
-        if (!mounted) return
-        setIsAuth(!!data.user)
-      }).catch(() => {
-        if (!mounted) return
-        setIsAuth(false)
-      })
-
-      // Subscribe to auth changes
-      const { data } = supabase.auth.onAuthStateChange((_event, session) => {
-        if (!mounted) return
-        setIsAuth(!!session?.user)
-      })
-
-      subscription = data?.subscription
-    } catch (err) {
-      // If env is missing or client creation fails, surface via toast and set unauthenticated
-      setIsAuth(false)
-      toast({ title: 'Error', description: String((err as Error).message), variant: 'destructive' })
-    }
-
-    return () => {
-      mounted = false
-      if (subscription && typeof subscription.unsubscribe === 'function') subscription.unsubscribe()
-    }
-  }, [])
-
-  useEffect(() => {
-    loadSkills()
-  }, [isAuth])
-
-  async function loadSkills() {
-    try {
-      setLoading(true)
-      const data = await getSkills()
-      setSkills(data)
+      const data = await getSkillCategories()
+      setCategories(data)
+      setSavedSnapshot(JSON.stringify(data))
     } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to load skills',
-        variant: 'destructive',
-      })
+      setLoadError(error instanceof Error ? error.message : 'Unable to load skills.')
     } finally {
       setLoading(false)
     }
   }
 
+  useEffect(() => { void loadCategories() }, [])
 
+  useEffect(() => {
+    if (!dirty) return
+    const warnBeforeLeaving = (event: BeforeUnloadEvent) => {
+      event.preventDefault()
+      event.returnValue = ''
+    }
+    window.addEventListener('beforeunload', warnBeforeLeaving)
+    return () => window.removeEventListener('beforeunload', warnBeforeLeaving)
+  }, [dirty])
 
+  function updateCategory(id: string, update: Partial<SkillCategory>) {
+    setCategories((current) => current.map((category) => category.id === id ? { ...category, ...update } : category))
+  }
 
+  function updateSkill(categoryId: string, skillId: string, update: Partial<SkillItem>) {
+    setCategories((current) => current.map((category) => category.id === categoryId ? {
+      ...category,
+      skills: category.skills.map((skill) => skill.id === skillId ? { ...skill, ...update } : skill),
+    } : category))
+  }
 
-  async function handleDeleteSkill(skillName: string) {
-    if (!confirm(`Delete skill "${skillName}"?`)) return
+  function addCategory() {
+    const name = newCategoryName.trim()
+    if (!name) return
+    if (categories.some((category) => category.name.trim().toLowerCase() === name.toLowerCase())) {
+      toast({ title: 'Category already exists', description: 'Choose a different category name.', variant: 'destructive' })
+      return
+    }
+    setCategories((current) => [...current, { id: crypto.randomUUID(), name, skills: [] }])
+    setNewCategoryName('')
+  }
 
+  async function saveChanges() {
+    setSaving(true)
     try {
-      await deleteSkill(skillName)
-      toast({ title: 'Success', description: 'Skill deleted' })
-      await loadSkills()
+      const validated = validateSkillCategories(categories)
+      const saved = await saveSkillCategories(validated)
+      setCategories(saved)
+      setSavedSnapshot(JSON.stringify(saved))
+      toast({ title: 'Changes saved', description: 'Your skills section has been updated.' })
     } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to delete skill',
-        variant: 'destructive',
-      })
+      toast({ title: 'Unable to save changes', description: error instanceof Error ? error.message : 'Please try again. Your edits are still here.', variant: 'destructive' })
+    } finally {
+      setSaving(false)
     }
   }
 
-  async function handleSetSkillLevel(skillName: string, category: string, newLevel: number) {
-    try {
-      // Optimistically update local state immediately
-      const key = `${category}::${skillName}`
-      setOptimisticLevels((prev) => ({ ...prev, [key]: newLevel }))
-
-      // Call server action to update DB
-      await updateSkillLevel(skillName, newLevel, category)
-      
-      // Reload skills from DB to sync
-      await loadSkills()
-      
-      // Clear optimistic state once synced
-      setOptimisticLevels((prev) => {
-        const { [key]: _removed, ...rest } = prev
-        return rest
-      })
-      
-      toast({ title: 'Success', description: `${skillName} updated to ${newLevel}%` })
-    } catch (error) {
-      // On error, revert optimistic state and show error
-      const key = `${category}::${skillName}`
-      setOptimisticLevels((prev) => {
-        const { [key]: _removed, ...rest } = prev
-        return rest
-      })
-      
-      toast({
-        title: 'Error',
-        description: 'Failed to update skill. Please try again.',
-        variant: 'destructive',
-      })
-    }
-  }
-
-  if (loading) return <div>Loading skills...</div>
-
-  // If not authenticated, show a small hint so users know they must sign in to edit
-  const authNotice = isAuth === false ? (
-    <Card className="p-4 mb-4">
-      <p className="text-sm text-muted-foreground">You must be logged in as an admin to edit skill levels. Visit <a className="underline" href="/login">/login</a> to sign in.</p>
+  if (loading) return <p role="status">Loading skills…</p>
+  if (loadError) return (
+    <Card className="p-6 space-y-3">
+      <p role="alert" className="text-sm text-destructive">{loadError}</p>
+      <Button variant="outline" onClick={() => void loadCategories()}>Try again</Button>
     </Card>
-  ) : null
-
-  const groupedSkills = skills.reduce(
-    (acc, skill) => {
-      if (!acc[skill.category]) {
-        acc[skill.category] = []
-      }
-      acc[skill.category].push(skill)
-      return acc
-    },
-    {} as Record<string, Skill[]>
   )
 
   return (
-    <div className="space-y-6">
-      {/* Add New Skill */}
+    <fieldset disabled={saving} className="space-y-5 min-w-0">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h2 className="text-xl font-bold">Technical Arsenal &amp; Capabilities</h2>
+          <p className="text-sm text-muted-foreground mt-1">Manage categories, skills, and percentages. Save to publish your changes.</p>
+        </div>
+        <Button type="button" onClick={() => void saveChanges()} disabled={!dirty || saving} className="gap-2 shrink-0">
+          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+          {saving ? 'Saving…' : 'Save changes'}
+        </Button>
+      </div>
 
+      <Card className="p-4 space-y-2">
+        <Label htmlFor="new-skill-category">New category</Label>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Input id="new-skill-category" placeholder="e.g., Web Development" value={newCategoryName}
+            onChange={(event) => setNewCategoryName(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' && !event.nativeEvent.isComposing) {
+                event.preventDefault()
+                addCategory()
+              }
+            }} />
+          <Button type="button" variant="outline" className="gap-2" onClick={addCategory} disabled={!newCategoryName.trim()}>
+            <Plus className="h-4 w-4" />Add category
+          </Button>
+        </div>
+      </Card>
 
-      {/* Skills by Category */}
-      {DEFAULT_CATEGORIES.map((category) => {
-        const categorySkills = groupedSkills[category] || []
-        const predefined = PREDEFINED_SKILLS[category] || []
-        return (
-          <div key={category}>
-            <h3 className="font-semibold text-lg mb-3">{category}</h3>
-            <div className="grid gap-4">
-              {predefined.length > 0 ? (
-                predefined.map((skillName) => {
-                  const skillObj = categorySkills.find((s) => s.skill_name === skillName)
-                  const level = skillObj ? skillObj.level : 50
+      <p role="status" className="text-sm text-muted-foreground">{dirty ? 'You have unsaved changes.' : 'No unsaved changes.'}</p>
 
-                  return (
-                    <Card key={skillName} className="p-4 border border-neutral-200/90 shadow-xs hover:border-neutral-300 transition-all bg-white">
-                      <div className="flex items-center justify-between gap-4">
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium">{skillName}</p>
-                          <div className="mt-2 flex items-center gap-4">
-                            <div className="flex-1">
-                              <input
-                                type="range"
-                                min="0"
-                                max="100"
-                                value={optimisticLevels[`${category}::${skillName}`] ?? level}
-                                onChange={(e) => {
-                                  const val = parseInt(e.target.value)
-                                  // Immediately update local state for instant UI feedback
-                                  setOptimisticLevels((prev) => ({ ...prev, [`${category}::${skillName}`]: val }))
+      {categories.length === 0 && (
+        <Card className="p-8 text-center text-muted-foreground">No categories. Add one above, then add skills to it.</Card>
+      )}
 
-                                  // Debounce the DB call
-                                  const key = `${category}::${skillName}`
-                                  if (debounceTimers.current[key]) clearTimeout(debounceTimers.current[key])
-                                  debounceTimers.current[key] = window.setTimeout(() => {
-                                    handleSetSkillLevel(skillName, category, val)
-                                    delete debounceTimers.current[key]
-                                  }, 500)
-                                }}
-                                className="w-full"
-                                disabled={isAuth === false}
-                                aria-disabled={isAuth === false}
-                                title={isAuth === false ? 'Sign in to edit' : undefined}
-                              />
-                            </div>
-                            <span className="text-sm font-semibold text-primary min-w-fit">{optimisticLevels[`${category}::${skillName}`] ?? level}%</span>
-                          </div>
-                        </div>
-
-                        {skillObj ? (
-                          <Button size="sm" variant="destructive" onClick={() => handleDeleteSkill(skillName)} className="gap-2 font-medium bg-red-600 hover:bg-red-700 text-white shadow-xs">
-                            <Trash2 className="w-4 h-4" />
-                            Delete
-                          </Button>
-                        ) : null}
-                      </div>
-                    </Card>
-                  )
-                })
-              ) : (
-                <Card className="p-4 text-center text-muted-foreground">No skills in this category yet</Card>
-              )}
+      {categories.map((category, categoryIndex) => (
+        <Card key={category.id} className="p-4 sm:p-6 space-y-5 border-neutral-200/90 bg-white">
+          <div className="flex flex-col sm:flex-row gap-3 sm:items-end">
+            <div className="flex-1 min-w-0 space-y-2">
+              <Label htmlFor={`category-${category.id}`}>Category name</Label>
+              <Input id={`category-${category.id}`} value={category.name} className="font-semibold"
+                onChange={(event) => updateCategory(category.id, { name: event.target.value })} />
+            </div>
+            <div className="flex items-center gap-2">
+              <OrderButtons name={`category ${category.name}`} index={categoryIndex} total={categories.length}
+                onMove={(direction) => setCategories((current) => moveItem(current, categoryIndex, direction))} />
+              <Button type="button" variant="outline" size="icon" className="text-destructive"
+                aria-label={`Delete category ${category.name}`} title="Delete category"
+                onClick={() => {
+                  if (confirm(`Delete category “${category.name}” and its ${category.skills.length} skill(s)? This will be published when you save changes.`)) {
+                    setCategories((current) => current.filter((item) => item.id !== category.id))
+                  }
+                }}><Trash2 className="h-4 w-4" /></Button>
             </div>
           </div>
-        )
-      })}
-    </div>
+
+          <div className="space-y-3">
+            {category.skills.map((skill, skillIndex) => (
+              <div key={skill.id} className="rounded-xl border border-neutral-200 bg-neutral-50/60 p-3 sm:p-4 space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-end gap-3">
+                  <div className="flex-1 min-w-0 space-y-2">
+                    <Label htmlFor={`skill-${skill.id}`}>Skill name</Label>
+                    <Input id={`skill-${skill.id}`} value={skill.skill_name} placeholder="e.g., TypeScript"
+                      autoFocus={!skill.skill_name}
+                      onChange={(event) => updateSkill(category.id, skill.id, { skill_name: event.target.value })} />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <OrderButtons name={`skill ${skill.skill_name || 'Untitled'}`} index={skillIndex} total={category.skills.length}
+                      onMove={(direction) => updateCategory(category.id, { skills: moveItem(category.skills, skillIndex, direction) })} />
+                    <Button type="button" variant="outline" size="icon" className="text-destructive"
+                      aria-label={`Delete skill ${skill.skill_name || 'Untitled'}`} title="Delete skill"
+                      onClick={() => {
+                        if (!skill.skill_name.trim() || confirm(`Delete skill “${skill.skill_name}”? This will be published when you save changes.`)) {
+                          updateCategory(category.id, { skills: category.skills.filter((item) => item.id !== skill.id) })
+                        }
+                      }}><Trash2 className="h-4 w-4" /></Button>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <input type="range" min="0" max="100" step="1" value={skill.level}
+                    aria-label={`${skill.skill_name || 'Untitled skill'} proficiency in ${category.name}`}
+                    aria-valuetext={`${skill.level}%`}
+                    onChange={(event) => updateSkill(category.id, skill.id, { level: Number(event.target.value) })}
+                    className="flex-1 min-w-0 accent-[#E31B23] cursor-pointer" />
+                  <span className="w-12 text-right font-semibold text-sm text-[#E31B23] tabular-nums">{skill.level}%</span>
+                </div>
+              </div>
+            ))}
+            {category.skills.length === 0 && <p className="text-sm text-muted-foreground">No skills yet. Empty categories stay hidden on your public page.</p>}
+          </div>
+
+          <Button type="button" variant="outline" className="gap-2"
+            onClick={() => updateCategory(category.id, {
+              skills: [...category.skills, { id: crypto.randomUUID(), skill_name: '', level: 50 }],
+            })}><Plus className="h-4 w-4" />Add skill</Button>
+        </Card>
+      ))}
+
+      {categories.length > 0 && (
+        <div className="flex justify-end">
+          <Button type="button" onClick={() => void saveChanges()} disabled={!dirty || saving} className="gap-2">
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+            {saving ? 'Saving…' : 'Save changes'}
+          </Button>
+        </div>
+      )}
+    </fieldset>
   )
 }

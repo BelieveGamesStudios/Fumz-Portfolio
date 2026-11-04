@@ -14,6 +14,7 @@ interface Project {
   category: string
   image: string
   platforms: string[]
+  tags?: string[]
   link: string
 }
 
@@ -205,6 +206,16 @@ export function ProjectsSection() {
                         </span>
                       ))}
                     </div>
+
+                    {!!project.tags?.length && (
+                      <div aria-label="Project tags" className="flex flex-wrap gap-1.5 mb-3">
+                        {project.tags.map((tag) => (
+                          <span key={tag} className="px-2 py-0.5 rounded-md bg-red-50 text-red-700 text-[11px] font-semibold break-words max-w-full">
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
 
                     <h3 className="text-lg font-bold text-neutral-900 group-hover:text-[#E31B23] transition-colors mb-2">
                       {project.title}

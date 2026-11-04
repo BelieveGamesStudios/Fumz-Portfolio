@@ -9,7 +9,9 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Label } from '@/components/ui/label'
 import { useToast } from '@/components/ui/use-toast'
 import { RichTextEditor } from './rich-text-editor'
-import { Trash2, Edit2, Plus, X, Film, Download } from 'lucide-react'
+import { Trash2, Edit2, Plus, X, Film, Download, ExternalLink } from 'lucide-react'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { normalizeTags, normalizeWebsiteUrl, type ProjectActionType } from '@/lib/project-details'
 import { FileUploadOrUrl } from '@/components/ui/file-upload-or-url'
 
 interface Project {
@@ -20,6 +22,9 @@ interface Project {
   image_url: string
   platform?: string
   video_url?: string
+  tags?: string[]
+  action_type?: ProjectActionType
+  website_url?: string
   download_url?: string
   screenshots?: Array<{ url: string; caption?: string }>
 }
@@ -31,6 +36,7 @@ export function ProjectsManager() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [isCreatingCategory, setIsCreatingCategory] = useState(false)
   const [newCategoryName, setNewCategoryName] = useState('')
+  const [tagInput, setTagInput] = useState('')
   const { toast } = useToast()
 
   const [formData, setFormData] = useState({
@@ -42,6 +48,9 @@ export function ProjectsManager() {
     link: '',
     video_url: '',
     download_url: '',
+    website_url: '',
+    action_type: 'download' as ProjectActionType,
+    tags: [] as string[],
     screenshots: [] as Array<{ url: string; caption?: string }>,
   })
 
@@ -74,6 +83,24 @@ export function ProjectsManager() {
 
     return list
   }, [projects, formData.category])
+
+  const availableTags = useMemo(
+    () => normalizeTags(projects.flatMap((project) => project.tags || []))
+      .sort((a, b) => a.localeCompare(b)),
+    [projects],
+  )
+
+  function resolveTags(tags: string[]) {
+    return normalizeTags(tags.map((tag) =>
+      availableTags.find((existing) => existing.toLowerCase() === tag.trim().toLowerCase()) || tag,
+    ))
+  }
+
+  function addTag(value = tagInput) {
+    if (!value.trim()) return
+    setFormData((current) => ({ ...current, tags: resolveTags([...current.tags, value]) }))
+    setTagInput('')
+  }
 
   const [screenshotInput, setScreenshotInput] = useState('')
   const [screenshotCaption, setScreenshotCaption] = useState('')
@@ -140,6 +167,8 @@ export function ProjectsManager() {
     }
 
     try {
+      const websiteUrl = normalizeWebsiteUrl(formData.website_url)
+      const tags = resolveTags([...formData.tags, tagInput])
       const finalCategory =
         (isCreatingCategory && newCategoryName.trim())
           ? newCategoryName.trim()
@@ -154,6 +183,8 @@ export function ProjectsManager() {
         console.log('Submitting update for:', editingId)
         await updateProject(editingId, {
           ...formData,
+          website_url: websiteUrl,
+          tags,
           category: finalCategory,
           platforms: platformArray,
         })
@@ -161,6 +192,8 @@ export function ProjectsManager() {
       } else {
         await addProject({
           ...formData,
+          website_url: websiteUrl,
+          tags,
           category: finalCategory,
           platforms: platformArray,
         })
@@ -177,8 +210,12 @@ export function ProjectsManager() {
         link: '',
         video_url: '',
         download_url: '',
+        website_url: '',
+        action_type: 'download',
+        tags: [],
         screenshots: [],
       })
+      setTagInput('')
       setEditingId(null)
       setIsCreatingCategory(false)
       setNewCategoryName('')
@@ -187,7 +224,7 @@ export function ProjectsManager() {
       console.error('Project submission error:', error)
       toast({
         title: 'Error',
-        description: 'Failed to save project',
+        description: error instanceof Error ? error.message : 'Failed to save project',
         variant: 'destructive',
       })
     }
@@ -219,8 +256,14 @@ export function ProjectsManager() {
       link: '',
       video_url: project.video_url || '',
       download_url: project.download_url || '',
+      website_url: project.website_url || '',
+      action_type: project.action_type || 'download',
+      tags: project.tags || [],
       screenshots: project.screenshots || [],
     })
+    setTagInput('')
+    setIsCreatingCategory(false)
+    setNewCategoryName('')
     setEditingId(project.id)
     setIsOpen(true)
   }
@@ -235,8 +278,14 @@ export function ProjectsManager() {
       link: '',
       video_url: '',
       download_url: '',
+      website_url: '',
+      action_type: 'download',
+      tags: [],
       screenshots: [],
     })
+    setTagInput('')
+    setIsCreatingCategory(false)
+    setNewCategoryName('')
     setEditingId(null)
     setIsOpen(true)
   }
@@ -348,6 +397,42 @@ export function ProjectsManager() {
               />
             </div>
 
+            <div className="space-y-2">
+              <Label htmlFor="project-tag">Tags</Label>
+              <div className="flex flex-wrap gap-2">
+                {formData.tags.map((tag) => (
+                  <Button key={tag} type="button" variant="secondary" size="sm"
+                    className="max-w-full gap-1" aria-label={`Remove tag ${tag}`}
+                    onClick={() => setFormData((current) => ({ ...current, tags: current.tags.filter((value) => value !== tag) }))}>
+                    <span className="truncate">{tag}</span><X className="h-3 w-3 shrink-0" />
+                  </Button>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <Input id="project-tag" value={tagInput} placeholder="Create or search tags…"
+                  onChange={(event) => setTagInput(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' && !event.nativeEvent.isComposing) {
+                      event.preventDefault()
+                      addTag()
+                    }
+                  }} />
+                <Button type="button" variant="outline" disabled={!tagInput.trim()} onClick={() => addTag()}>Add tag</Button>
+              </div>
+              <p className="text-xs text-muted-foreground">Press Enter to create a tag, or select an existing tag below.</p>
+              <div className="flex flex-wrap gap-2">
+                {availableTags.filter((tag) =>
+                  tag.toLowerCase().includes(tagInput.trim().toLowerCase()) &&
+                  !formData.tags.some((selected) => selected.toLowerCase() === tag.toLowerCase())
+                ).slice(0, 12).map((tag) => (
+                  <Button key={tag} type="button" variant="outline" size="sm" className="max-w-full gap-1"
+                    onClick={() => addTag(tag)}>
+                    <Plus className="h-3 w-3 shrink-0" /><span className="truncate">{tag}</span>
+                  </Button>
+                ))}
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="platforms">Platforms (comma separated)</Label>
@@ -363,7 +448,7 @@ export function ProjectsManager() {
                 <FileUploadOrUrl
                   label="Featured Image"
                   value={formData.image}
-                  onChange={(url) => setFormData({ ...formData, image: url })}
+                  onChange={(url) => setFormData((current) => ({ ...current, image: url }))}
                   folder="projects"
                   accept="image/*"
                   maxSizeMB={25}
@@ -385,16 +470,38 @@ export function ProjectsManager() {
               </div>
 
               <div className="space-y-2">
-                <FileUploadOrUrl
-                  label="Build File / Download Link"
-                  value={formData.download_url}
-                  onChange={(url) => setFormData({ ...formData, download_url: url })}
-                  folder="builds"
-                  accept=".zip,.rar,.7z,.tar,.gz,.apk,.exe,.dmg,.pkg,application/zip,application/x-zip-compressed,application/octet-stream"
-                  maxSizeMB={1000}
-                  placeholder="https://itch.io/..., https://example.com/game.zip"
-                  description="Direct upload to Cloudflare R2 (up to 1GB) or paste external link"
-                />
+                <Label>Project action</Label>
+                <ToggleGroup type="single" variant="outline" value={formData.action_type}
+                  aria-label="Project action"
+                  onValueChange={(value) => {
+                    if (value === 'download' || value === 'website') {
+                      setFormData((current) => ({ ...current, action_type: value }))
+                    }
+                  }}>
+                  <ToggleGroupItem value="download" className="gap-2"><Download className="h-4 w-4" />Download</ToggleGroupItem>
+                  <ToggleGroupItem value="website" className="gap-2"><ExternalLink className="h-4 w-4" />Website</ToggleGroupItem>
+                </ToggleGroup>
+                {formData.action_type === 'website' ? (
+                  <div className="space-y-2">
+                    <Label htmlFor="website_url">Website URL</Label>
+                    <Input id="website_url" type="url" value={formData.website_url}
+                      onChange={(event) => setFormData({ ...formData, website_url: event.target.value })}
+                      placeholder="https://example.com" />
+                    <p className="text-xs text-muted-foreground">Optional. Shows “Visit Website” and opens in a new tab.</p>
+                  </div>
+                ) : (
+                  <FileUploadOrUrl
+                    label="Build File / Download Link"
+                    value={formData.download_url}
+                    onChange={(url) => setFormData((current) => ({ ...current, download_url: url }))}
+                    folder="builds"
+                    accept=".zip,.rar,.7z,.tar,.gz,.apk,.exe,.dmg,.pkg,application/zip,application/x-zip-compressed,application/octet-stream"
+                    maxSizeMB={1000}
+                    placeholder="https://itch.io/..., https://example.com/game.zip"
+                    description="Direct upload to Cloudflare R2 (up to 1GB) or paste external link"
+                  />
+                )}
+                <p className="text-xs text-muted-foreground">Both links are remembered. Only the selected action appears; leave its link empty to hide the button.</p>
               </div>
             </div>
 
@@ -493,16 +600,19 @@ export function ProjectsManager() {
                       {project.platform}
                     </span>
                   )}
+                  {(project.tags || []).map((tag) => (
+                    <span key={tag} className="text-[11px] sm:text-xs bg-red-50 text-red-700 px-2 py-1 rounded break-words">{tag}</span>
+                  ))}
                   {project.video_url && (
                     <span className="text-[11px] sm:text-xs bg-red-50 text-red-700 font-medium px-2 py-0.5 sm:py-1 rounded border border-red-200/80 flex items-center gap-1">
                       <Film className="w-3 h-3 text-red-600" />
                       Video
                     </span>
                   )}
-                  {project.download_url && (
+                  {(project.action_type === 'website' ? project.website_url : project.download_url) && (
                     <span className="text-[11px] sm:text-xs bg-emerald-50 text-emerald-800 font-medium px-2 py-0.5 sm:py-1 rounded border border-emerald-200/80 flex items-center gap-1">
-                      <Download className="w-3 h-3 text-emerald-700" />
-                      Link
+                      {project.action_type === 'website' ? <ExternalLink className="w-3 h-3" /> : <Download className="w-3 h-3" />}
+                      {project.action_type === 'website' ? 'Website' : 'Download'}
                     </span>
                   )}
                   {project.screenshots && project.screenshots.length > 0 && (

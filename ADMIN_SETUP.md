@@ -53,6 +53,45 @@ create policy "contact_submissions_update_admin" on public.contact_submissions f
 create policy "contact_submissions_delete_admin" on public.contact_submissions for delete using (true);
 ```
 
+### Project tags and website actions
+
+Before deploying the tags and Download / Website feature, run
+[`scripts/009_add_project_tags_and_actions.sql`](scripts/009_add_project_tags_and_actions.sql)
+in the Supabase SQL editor. It adds `tags`, `action_type`, and `website_url` to
+`public.projects`. Existing projects keep their download links and default to Download.
+The migration can be run again safely.
+
+In Add/Edit Project, type a tag and press Enter or choose an existing tag suggestion.
+Tags appear on homepage project cards, admin previews, and project detail pages.
+Suggestions come from tags saved on your existing projects. Removing a tag from one
+project leaves other projects unchanged.
+
+Select Download to upload a build or provide a download URL, or Website to provide an
+HTTP/HTTPS website URL. Both values are saved independently, while the selected mode
+controls the single public button: **Download App** or **Visit Website**. Links are
+optional; an empty link in the selected mode hides the button. Website links open in a
+new tab.
+
+### Dynamic skills categories
+
+Before deploying the dynamic Skills editor, run
+[`scripts/010_create_skill_sections.sql`](scripts/010_create_skill_sections.sql)
+in Supabase's SQL editor, after `007_create_skill_levels.sql`. The migration copies
+all saved categories, skills, and percentages into an ordered section per owner.
+It keeps the original `skill_levels` table as a backup and can be rerun without
+overwriting edits made in the new editor.
+
+In **Admin → Skills**, create or rename categories, add or rename skills, adjust
+0–100% sliders, and use the arrow buttons to reorder categories and skills.
+Deleting a category also removes its skills after confirmation. Changes stay in
+the editor until **Save changes** publishes the whole section in one atomic write.
+Switching dashboard tabs preserves unsaved skills edits.
+
+The public Technical Arsenal & Capabilities section follows the saved order and
+hides empty categories. Saving an empty section clears it without restoring sample
+skills. If no skills have ever been saved, the editor and public page start with
+the same default content. The public skills API returns a flat list in display order.
+
 ### 2. Create Admin User Account
 1. Go to your Supabase project dashboard
 2. Navigate to **Authentication > Users**

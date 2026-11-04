@@ -2,6 +2,8 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { DEFAULT_SKILL_CATEGORIES, validateSkillCategories, type SkillCategory } from '@/lib/skills'
+import { projectDetailsForSave, type ProjectActionType } from '@/lib/project-details'
 
 export async function getAdminUser() {
   const supabase = await createClient()
@@ -39,6 +41,9 @@ export async function addProject(projectData: {
   platforms: string[]
   link: string
   video_url?: string
+  tags?: string[]
+  action_type?: ProjectActionType
+  website_url?: string
   download_url?: string
   screenshots?: Array<{ url: string; caption?: string }>
 }) {
@@ -57,7 +62,7 @@ export async function addProject(projectData: {
         platform: projectData.platforms.join(','),
         featured: false,
         video_url: projectData.video_url || null,
-        download_url: projectData.download_url || null,
+        ...projectDetailsForSave(projectData),
         screenshots: projectData.screenshots || [],
       },
     ])
@@ -77,6 +82,9 @@ export async function updateProject(
     platforms: string[]
     link: string
     video_url?: string
+    tags?: string[]
+    action_type?: ProjectActionType
+    website_url?: string
     download_url?: string
     screenshots?: Array<{ url: string; caption?: string }>
   }
@@ -96,7 +104,7 @@ export async function updateProject(
       image_url: projectData.image,
       platform: projectData.platforms.join(','),
       video_url: projectData.video_url || null,
-      download_url: projectData.download_url || null,
+      ...projectDetailsForSave(projectData),
       screenshots: projectData.screenshots || [],
       updated_at: new Date().toISOString(),
     })
@@ -257,18 +265,31 @@ export async function submitContactForm(formData: {
 }
 
 // Skills actions
-export async function getSkills() {
+export async function getSkillCategories(): Promise<SkillCategory[]> {
   const supabase = await createClient()
   const user = await getAdminUser()
-
   const { data, error } = await supabase
-    .from('skill_levels')
-    .select('*')
+    .from('skill_sections')
+    .select('categories')
     .eq('user_id', user.id)
-    .order('category', { ascending: true })
+    .maybeSingle()
 
-  if (error) throw error
-  return data || []
+  if (error) throw new Error(`Unable to load skills: ${error.message}`)
+  return validateSkillCategories(data ? data.categories : DEFAULT_SKILL_CATEGORIES)
+}
+
+export async function saveSkillCategories(categories: unknown): Promise<SkillCategory[]> {
+  const supabase = await createClient()
+  const user = await getAdminUser()
+  const validated = validateSkillCategories(categories)
+  const { error } = await supabase.from('skill_sections').upsert({
+    user_id: user.id,
+    categories: validated,
+    updated_at: new Date().toISOString(),
+  }, { onConflict: 'user_id' })
+
+  if (error) throw new Error(`Unable to save skills: ${error.message}`)
+  return validated
 }
 
 // Certifications actions
@@ -352,78 +373,6 @@ export async function deleteCertification(certId: string) {
 
   if (error) throw error
 }
-export async function updateSkillLevel(skillName: string, level: number, category: string) {
-  const supabase = await createClient()
-  const user = await getAdminUser()
-
-  if (level < 0 || level > 100) {
-    throw new Error('Skill level must be between 0 and 100')
-  }
-
-  try {
-    // Try to find existing skill
-    const { data: existing, error: selectError } = await supabase
-      .from('skill_levels')
-      .select('id')
-      .eq('user_id', user.id)
-      .eq('skill_name', skillName)
-
-    if (selectError) {
-      console.error('Error selecting skill:', selectError)
-      throw selectError
-    }
-
-    if (existing && existing.length > 0) {
-      // Update existing
-      const { error } = await supabase
-        .from('skill_levels')
-        .update({
-          level,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', existing[0].id)
-
-      if (error) {
-        console.error('Error updating skill:', error)
-        throw error
-      }
-    } else {
-      // Insert new
-      const { error } = await supabase
-        .from('skill_levels')
-        .insert([
-          {
-            user_id: user.id,
-            skill_name: skillName,
-            level,
-            category,
-          },
-        ])
-
-      if (error) {
-        console.error('Error inserting skill:', error)
-        throw error
-      }
-    }
-  } catch (error) {
-    console.error('Skill level update failed:', error)
-    throw error
-  }
-}
-
-export async function deleteSkill(skillName: string) {
-  const supabase = await createClient()
-  const user = await getAdminUser()
-
-  const { error } = await supabase
-    .from('skill_levels')
-    .delete()
-    .eq('user_id', user.id)
-    .eq('skill_name', skillName)
-
-  if (error) throw error
-}
-
 // Experience actions
 export async function getExperiences() {
   const supabase = await createClient()

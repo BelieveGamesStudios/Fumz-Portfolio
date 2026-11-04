@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Download, Play } from 'lucide-react'
+import { ArrowLeft, Download, Play, ExternalLink } from 'lucide-react'
+import { type ProjectActionType } from '@/lib/project-details'
 import { Button } from '@/components/ui/button'
 
 interface Screenshot {
@@ -21,6 +22,9 @@ interface Project {
   featured?: boolean
   video_url?: string
   download_url?: string
+  tags?: string[]
+  action_type?: ProjectActionType
+  website_url?: string
   screenshots?: Screenshot[]
   created_at?: string
 }
@@ -96,6 +100,8 @@ export default function ProjectPage() {
     )
   }
 
+  const isWebsite = project.action_type === 'website'
+  const actionUrl = isWebsite ? project.website_url : project.download_url
   const embedUrl = project.video_url ? getEmbedUrl(project.video_url) : null
 
   return (
@@ -110,6 +116,14 @@ export default function ProjectPage() {
         {/* Project header */}
         <div className="space-y-6 mb-12">
           <h1 className="text-4xl sm:text-5xl font-bold">{project.title}</h1>
+
+          {!!project.tags?.length && (
+            <div aria-label="Project tags" className="flex flex-wrap gap-2">
+              {project.tags.map((tag) => (
+                <span key={tag} className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm break-words max-w-full">{tag}</span>
+              ))}
+            </div>
+          )}
 
           {/* Project image */}
           <div className="relative h-96 rounded-2xl overflow-hidden bg-gradient-to-br from-primary/10 to-accent/10">
@@ -141,12 +155,12 @@ export default function ProjectPage() {
                 )}
               </div>
 
-              {project.download_url && (
+              {actionUrl && (
                 <div className="mt-6 pt-6 border-t border-border/50">
-                  <a href={project.download_url} target="_blank" rel="noopener noreferrer">
+                  <a href={actionUrl} target="_blank" rel="noopener noreferrer">
                     <Button className="w-full gap-2 group">
-                      <Download className="w-4 h-4 group-hover:translate-y-1 transition-transform" />
-                      Download App
+                      {isWebsite ? <ExternalLink className="w-4 h-4" /> : <Download className="w-4 h-4 group-hover:translate-y-1 transition-transform" />}
+                      {isWebsite ? 'Visit Website' : 'Download App'}
                     </Button>
                   </a>
                 </div>
