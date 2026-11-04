@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card } from '@/components/ui/card'
-import { useToast } from '@/components/ui/use-toast'
 import { ArrowDown, ArrowUp, Loader2, Plus, Save, Trash2 } from 'lucide-react'
 
 function OrderButtons({ name, index, total, onMove }: {
@@ -37,7 +36,7 @@ export function SkillsEditor() {
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
-  const { toast } = useToast()
+  const [saveError, setSaveError] = useState<string | null>(null)
   const dirty = JSON.stringify(categories) !== savedSnapshot
 
   async function loadCategories() {
@@ -81,23 +80,24 @@ export function SkillsEditor() {
     const name = newCategoryName.trim()
     if (!name) return
     if (categories.some((category) => category.name.trim().toLowerCase() === name.toLowerCase())) {
-      toast({ title: 'Category already exists', description: 'Choose a different category name.', variant: 'destructive' })
+      setSaveError('A category with this name already exists. Choose a different name.')
       return
     }
     setCategories((current) => [...current, { id: crypto.randomUUID(), name, skills: [] }])
     setNewCategoryName('')
+    setSaveError(null)
   }
 
   async function saveChanges() {
     setSaving(true)
+    setSaveError(null)
     try {
       const validated = validateSkillCategories(categories)
       const saved = await saveSkillCategories(validated)
       setCategories(saved)
       setSavedSnapshot(JSON.stringify(saved))
-      toast({ title: 'Changes saved', description: 'Your skills section has been updated.' })
     } catch (error) {
-      toast({ title: 'Unable to save changes', description: error instanceof Error ? error.message : 'Please try again. Your edits are still here.', variant: 'destructive' })
+      setSaveError(error instanceof Error ? error.message : 'Unable to save. Please try again. Your edits are still here.')
     } finally {
       setSaving(false)
     }
@@ -141,6 +141,7 @@ export function SkillsEditor() {
         </div>
       </Card>
 
+      {saveError && <p role="alert" className="text-sm text-destructive">{saveError}</p>}
       <p role="status" className="text-sm text-muted-foreground">{dirty ? 'You have unsaved changes.' : 'No unsaved changes.'}</p>
 
       {categories.length === 0 && (

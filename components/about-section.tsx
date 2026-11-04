@@ -6,6 +6,55 @@ import { DEFAULT_SKILL_CATEGORIES, type SkillCategory } from "@/lib/skills"
 import { Award, Code2, Layers, Cpu } from "lucide-react"
 
 
+function AnimatedSkillCategory({ category }: { category: SkillCategory }) {
+  const categoryRef = useRef<HTMLDivElement>(null)
+  const [visible, setVisible] = useState(false)
+
+  useEffect(() => {
+    const element = categoryRef.current
+    if (!element) return
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) {
+      setVisible(true)
+      return
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) {
+        setVisible(true)
+        observer.disconnect()
+      }
+    }, { rootMargin: '0px 0px -40px 0px', threshold: 0 })
+
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [])
+
+  return (
+    <div ref={categoryRef} className="space-y-3">
+      <span className="text-xs font-black uppercase tracking-wider text-neutral-400">
+        {category.name}
+      </span>
+      <div className="space-y-2.5">
+        {category.skills.map((skill) => (
+          <div key={skill.id} className="space-y-1">
+            <div className="flex justify-between text-xs font-bold text-neutral-800">
+              <span>{skill.skill_name}</span>
+              <span className="text-[#E31B23]">{skill.level}%</span>
+            </div>
+            <div className="w-full h-1.5 bg-neutral-100 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-[#E31B23] rounded-full transition-[width] duration-700 ease-out motion-reduce:transition-none"
+                style={{ width: visible ? `${skill.level}%` : '0%' }}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 export function AboutSection() {
   const [skillsData, setSkillsData] = useState<SkillCategory[]>(DEFAULT_SKILL_CATEGORIES)
   const [aboutContent, setAboutContent] = useState<{ title: string; content: string; image_url?: string } | null>(null)
@@ -124,28 +173,7 @@ export function AboutSection() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {skillsData.map((category) => (
-                  <div key={category.id} className="space-y-3">
-                    <span className="text-xs font-black uppercase tracking-wider text-neutral-400">
-                      {category.name}
-                    </span>
-                    <div className="space-y-2.5">
-                      {category.skills.map((skill) => (
-                        <div key={skill.id || skill.skill_name} className="space-y-1">
-                          <div className="flex justify-between text-xs font-bold text-neutral-800">
-                            <span>{skill.skill_name}</span>
-                            <span className="text-[#E31B23]">{skill.level}%</span>
-                          </div>
-                          {/* Progress bar */}
-                          <div className="w-full h-1.5 bg-neutral-100 rounded-full overflow-hidden">
-                            <div
-                              className="h-full bg-[#E31B23] rounded-full transition-all duration-700"
-                              style={{ width: `${skill.level}%` }}
-                            />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                  <AnimatedSkillCategory key={category.id} category={category} />
                 ))}
               </div>
             </div>

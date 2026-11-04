@@ -176,18 +176,14 @@ export default function ProjectPage() {
               <Play className="w-6 h-6 text-primary" />
               Project Video
             </h2>
-            <div className="overflow-x-auto pb-4 -mx-4 px-4">
-              <div className="flex gap-4" style={{ minWidth: 'min-content' }}>
-                <div className="relative aspect-video w-[600px] flex-shrink-0 rounded-2xl overflow-hidden bg-black">
-                  <iframe
-                    src={embedUrl}
-                    title={`${project.title} video`}
-                    className="absolute inset-0 w-full h-full"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  />
-                </div>
-              </div>
+            <div className="relative aspect-video w-full rounded-2xl overflow-hidden bg-black">
+              <iframe
+                src={embedUrl}
+                title={`${project.title} video`}
+                className="absolute inset-0 w-full h-full"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
             </div>
           </div>
         )}
