@@ -216,7 +216,7 @@ export default function ProjectPage() {
         {/* Project description */}
         <div className="glass rounded-xl p-8">
           <h2 className="text-2xl font-bold mb-4">About This Project</h2>
-          <div className="prose prose-invert max-w-none">
+          <div className="rich-text-rendered max-w-none">
             {project.description ? (
               <div dangerouslySetInnerHTML={{ __html: project.description }} />
             ) : (
