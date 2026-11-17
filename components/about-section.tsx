@@ -100,7 +100,7 @@ export function AboutSection() {
           </span>
         </div>
         <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-neutral-900 tracking-tight uppercase mb-12">
-          Afolabi Funmilade
+          Afolabi Oluwafunmilade
         </h2>
 
         {/* Content Grid */}

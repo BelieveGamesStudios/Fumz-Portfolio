@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import { Geist, Geist_Mono, Bebas_Neue } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { ThemeProvider } from "@/components/theme-provider"
+import { fullName, siteDescription, siteTitle, siteUrl } from "@/lib/seo"
 import "./globals.css"
 
 const _geist = Geist({ subsets: ["latin"] })
@@ -14,8 +15,28 @@ const bebasNeue = Bebas_Neue({
 })
 
 export const metadata: Metadata = {
-  title: "Fumz - XR & Game Developer",
-  description: "Interactive portfolio showcasing immersive experiences, games, and XR applications",
+  metadataBase: siteUrl ? new URL(siteUrl) : undefined,
+  title: { default: siteTitle, template: `%s | ${fullName} (Fumz)` },
+  description: siteDescription,
+  authors: [{ name: fullName, ...(siteUrl ? { url: siteUrl } : {}) }],
+  creator: fullName,
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    siteName: `${fullName} (Fumz)`,
+    title: siteTitle,
+    description: siteDescription,
+    ...(siteUrl ? {
+      images: [{ url: `${siteUrl}/Fumz%20Transparent.png`, alt: `${fullName} (Fumz)` }],
+    } : {}),
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: siteTitle,
+    description: siteDescription,
+    ...(siteUrl ? { images: [`${siteUrl}/Fumz%20Transparent.png`] } : {}),
+  },
+  verification: { google: process.env.GOOGLE_SITE_VERIFICATION },
   icons: {
     icon: [
       {

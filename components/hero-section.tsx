@@ -137,7 +137,7 @@ export function HeroSection() {
         >
           <img
             src="/Fumz Transparent.png"
-            alt="Afolabi Funmilade (Fumz)"
+            alt="Afolabi Oluwafunmilade (Fumz), XR and game developer"
             className="h-[68vh] sm:h-[76vh] lg:h-[84vh] max-h-[850px] w-auto object-contain object-bottom drop-shadow-[0_20px_35px_rgba(0,0,0,0.22)] select-none pointer-events-auto"
           />
         </div>
@@ -153,9 +153,10 @@ export function HeroSection() {
               Building the impossible and<br />
               innovating in Games, XR and 3D.
             </p>
-            <p className="text-[11px] text-neutral-500 font-semibold mt-2 tracking-wide uppercase">
-              Afolabi Funmilade (Fumz)
-            </p>
+            <h1 className="text-[11px] text-neutral-500 font-semibold mt-2 tracking-wide uppercase">
+              Afolabi Oluwafunmilade (Fumz)
+              <span className="sr-only"> — XR &amp; Game Developer</span>
+            </h1>
           </div>
         </div>
       </div>

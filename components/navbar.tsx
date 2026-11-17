@@ -113,7 +113,7 @@ export function Navbar() {
                   isTypingComplete ? "opacity-100" : "opacity-0"
                 }`}
               >
-                Afolabi Funmilade
+                Afolabi Oluwafunmilade
               </span>
             </div>
           </Link>
